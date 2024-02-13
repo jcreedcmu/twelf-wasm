@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>Twelf Wasm</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <body>
+      <div id="app">
+        <h1>Twelf Wasm</h1>
+        <div class="wrap" id="primary-view-wrap">
+          <textarea id="primary-view"></textarea>
+        </div>
+        <div class="control">
+          <button id="check-button">Check</button>
+        </div>
+        <div class="wrap" id="twelf-response-wrap">
+          <textarea disabled="disabled" id="twelf-response"></textarea>
+        </div>
+      </div>
+      <div style="margin-left: 3em; margin-top: 3em; font-size: 0.8rem;">
+        <a href="http://twelf.org/wiki/Main_Page">Twelf</a> on Wasm is made possible by <a href="https://twelf-live.onrender.com/">Twelf Live</a> and
+      <a href="https://github.com/agoode/mlton/tree/wascally">this MLTon cross-compilation target</a>.
+      </div>
+    </body>
+    <script src="assets/bundle.js"></script>
+</html>

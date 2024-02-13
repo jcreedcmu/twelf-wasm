@@ -1,0 +1,122 @@
+*, *:before, *:after {
+  box-sizing:border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+pre {
+  font-family: Fira Mono, monospace;
+}
+
+#root, #__next {
+  isolation: isolate;
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+#app {
+  max-width: 1000px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wrap {
+  display: flex;
+  border: 1px solid black;
+}
+
+.wrap-hidden {
+  display: none;
+}
+
+.wrap:before {
+  transform-origin: top left;
+  position: absolute;
+  color: #fff;
+  text-transform: uppercase;
+  display: block;
+  letter-spacing: 2px;
+  text-align: center;
+  height: 1.5rem;
+}
+
+#primary-view-wrap {
+  height: calc(10rem + 2px);
+}
+
+#primary-view-wrap:before {
+  background-color: #7d9d77;
+  content: "input";
+  width: 10rem;
+  transform: rotate(-90deg) translate(-10rem);
+}
+
+#incremental-view-wrap {
+  height: calc(6rem + 2px);
+}
+
+#incremental-view-wrap:before {
+  background-color: #7d9d77;
+  content: "input";
+  width: 6rem;
+  transform: rotate(-90deg) translate(-6rem);
+}
+
+#twelf-response-wrap {
+  height: calc(10rem + 2px);
+}
+
+#twelf-response-wrap:before {
+  background-color: #294523;
+  content: "output";
+  width: 10rem;
+  transform: rotate(-90deg) translate(-10rem);
+}
+
+#twelf-response {
+  padding-left: calc(1.5rem + 5px);
+}
+
+textarea {
+  font-family: monospace;
+  padding-left: calc(1.5rem + 5px);
+  width: 100%;
+  resize: none;
+  border: none;
+}
+
+button {
+  display: block;
+}
+
+label {
+  padding-left: .5rem;
+}
