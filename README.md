@@ -9,3 +9,8 @@ Inspired by [Twelf Live](https://twelf-live.onrender.com), and thanks
 to [this PR](https://github.com/MLton/mlton/pull/550) against the
 MLTon compiler, which adds a cross-compilation target for Wasm/WASI,
 you can now run twelf inside your browser.
+
+Demo
+====
+
+[Go here to interact with the twelf server](https://jcreedcmu.github.io/twelf-wasm).
