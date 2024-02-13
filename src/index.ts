@@ -39,7 +39,7 @@ async function go(twelfContent: string) {
     },
   });
 
-  const wasm = await WebAssembly.instantiateStreaming(fetch("twelf.wasm"), {
+  const wasm = await WebAssembly.instantiateStreaming(fetch("assets/twelf.wasm"), {
     ...wasi.getImportObject(),
   });
 

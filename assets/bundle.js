@@ -1516,7 +1516,7 @@ function go(twelfContent) {
         }
       }
     });
-    const wasm = yield WebAssembly.instantiateStreaming(fetch("twelf.wasm"), __spreadValues({}, wasi.getImportObject()));
+    const wasm = yield WebAssembly.instantiateStreaming(fetch("assets/twelf.wasm"), __spreadValues({}, wasi.getImportObject()));
     const result = wasi.start(wasm, {});
     document.getElementById("twelf-response").value = output.slice(3).filter((x2) => x2 != `[Closing file /single.elf]
 `).join("");
