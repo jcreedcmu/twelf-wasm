@@ -63,12 +63,19 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
 }
 
 function init() {
+  (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
   const twelfService = new TwelfService(getWasm("assets/twelf.wasm"));
   const button = document.getElementById('check-button') as HTMLButtonElement;
-  button.onclick = () => {
+  function exec() {
     twelfService.exec((document.getElementById('primary-view') as HTMLTextAreaElement).value);
   }
+  button.onclick = exec;
   twelfService.hideLoaderAfterFetch();
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key == 'Enter') {
+      exec();
+    }
+  });
 }
 
 init();

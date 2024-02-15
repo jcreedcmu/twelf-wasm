@@ -1,3 +1,8 @@
+:root {
+  --size: 18rem;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
 *, *:before, *:after {
   box-sizing:border-box;
 }
@@ -36,10 +41,6 @@ pre {
   isolation: isolate;
 }
 
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-}
-
 #app {
   max-width: 1000px;
   margin: auto;
@@ -69,14 +70,14 @@ pre {
 }
 
 #primary-view-wrap {
-  height: calc(10rem + 2px);
+  height: calc(var(--size) + 2px);
 }
 
 #primary-view-wrap:before {
   background-color: #7d9d77;
   content: "input";
-  width: 10rem;
-  transform: rotate(-90deg) translate(-10rem);
+  width: var(--size);
+  transform: rotate(-90deg) translate(calc(0px - var(--size)));
 }
 
 #incremental-view-wrap {
@@ -91,14 +92,14 @@ pre {
 }
 
 #twelf-response-wrap {
-  height: calc(10rem + 2px);
+  height: calc(var(--size) + 2px);
 }
 
 #twelf-response-wrap:before {
   background-color: #294523;
   content: "output";
-  width: 10rem;
-  transform: rotate(-90deg) translate(-10rem);
+  width: var(--size);
+  transform: rotate(-90deg) translate(calc(0px - var(--size)));
 }
 
 #twelf-response {

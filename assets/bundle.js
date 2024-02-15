@@ -1540,12 +1540,19 @@ function getWasm(url) {
   });
 }
 function init() {
+  document.getElementById("twelf-response").value = "";
   const twelfService = new TwelfService(getWasm("assets/twelf.wasm"));
   const button = document.getElementById("check-button");
-  button.onclick = () => {
+  function exec() {
     twelfService.exec(document.getElementById("primary-view").value);
-  };
+  }
+  button.onclick = exec;
   twelfService.hideLoaderAfterFetch();
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.key == "Enter") {
+      exec();
+    }
+  });
 }
 init();
 //# sourceMappingURL=bundle.js.map
