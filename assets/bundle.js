@@ -1479,50 +1479,63 @@ var it = "dmFyIFR0PU9iamVjdC5kZWZpbmVQcm9wZXJ0eTt2YXIgQ3Q9KHMsQyxiKT0+QyBpbiBzP1
 var tt = typeof window < "u" && window.Blob && new Blob([atob(it)], { type: "text/javascript;charset=utf-8" });
 
 // src/index.ts
-function go(twelfContent) {
-  return __async(this, null, function* () {
-    const stdin = "loadFile /single.elf\n";
-    let stdinMark = 0;
-    function readStdin(numBytes) {
-      const bytes = Math.min(numBytes, stdin.length - stdinMark);
-      if (bytes == 0)
-        return null;
-      const rv = stdin.substr(stdinMark, bytes);
-      stdinMark += bytes;
-      return rv;
-    }
-    const output = [];
-    const wasi = new H({
-      args: ["twelf-server"],
-      env: {},
-      stdout: (out) => {
-        output.push(out);
-      },
-      stderr: (err) => {
-        output.push(err);
-      },
-      stdin: readStdin,
-      fs: {
-        "/single.elf": {
-          path: "/single.elf",
-          timestamps: {
-            access: new Date(),
-            change: new Date(),
-            modification: new Date()
-          },
-          mode: "string",
-          content: `${twelfContent}
-`
-        }
+var TwelfService = class {
+  constructor(twelfWasm) {
+    this.twelfWasm = twelfWasm;
+  }
+  exec(twelfContent) {
+    return __async(this, null, function* () {
+      const stdin = "loadFile /single.elf\n";
+      let stdinMark = 0;
+      function readStdin(numBytes) {
+        const bytes = Math.min(numBytes, stdin.length - stdinMark);
+        if (bytes == 0)
+          return null;
+        const rv = stdin.substr(stdinMark, bytes);
+        stdinMark += bytes;
+        return rv;
       }
-    });
-    const wasm = yield WebAssembly.instantiateStreaming(fetch("assets/twelf.wasm"), __spreadValues({}, wasi.getImportObject()));
-    const result = wasi.start(wasm, {});
-    document.getElementById("twelf-response").value = output.slice(3).filter((x2) => x2 != `[Closing file /single.elf]
+      const output = [];
+      const wasi = new H({
+        args: ["twelf-server"],
+        env: {},
+        stdout: (out) => {
+          output.push(out);
+        },
+        stderr: (err) => {
+          output.push(err);
+        },
+        stdin: readStdin,
+        fs: {
+          "/single.elf": {
+            path: "/single.elf",
+            timestamps: {
+              access: new Date(),
+              change: new Date(),
+              modification: new Date()
+            },
+            mode: "string",
+            content: `${twelfContent}
+`
+          }
+        }
+      });
+      const wasmInstance = yield WebAssembly.instantiate(this.twelfWasm, __spreadValues({}, wasi.getImportObject()));
+      const result = wasi.start(wasmInstance, {});
+      document.getElementById("twelf-response").value = output.slice(3).filter((x2) => x2 != `[Closing file /single.elf]
 `).join("");
+    });
+  }
+};
+function init() {
+  return __async(this, null, function* () {
+    const twelfService = new TwelfService(yield (yield fetch("assets/twelf.wasm")).arrayBuffer());
+    const button = document.getElementById("check-button");
+    button.onclick = () => {
+      twelfService.exec(document.getElementById("primary-view").value);
+    };
+    button.removeAttribute("disabled");
   });
 }
-document.getElementById("check-button").onclick = () => {
-  go(document.getElementById("primary-view").value);
-};
+init();
 //# sourceMappingURL=bundle.js.map
