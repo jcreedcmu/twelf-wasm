@@ -1483,6 +1483,13 @@ var TwelfService = class {
   constructor(twelfWasm) {
     this.twelfWasm = twelfWasm;
   }
+  hideLoaderAfterFetch() {
+    return __async(this, null, function* () {
+      yield this.twelfWasm;
+      console.log("hello");
+      document.getElementById("loading-indicator").classList.add("hidden");
+    });
+  }
   exec(twelfContent) {
     return __async(this, null, function* () {
       const stdin = "loadFile /single.elf\n";
@@ -1527,15 +1534,18 @@ var TwelfService = class {
     });
   }
 };
-function init() {
+function getWasm(url) {
   return __async(this, null, function* () {
-    const twelfService = new TwelfService((yield fetch("assets/twelf.wasm")).arrayBuffer());
-    const button = document.getElementById("check-button");
-    button.onclick = () => {
-      twelfService.exec(document.getElementById("primary-view").value);
-    };
-    button.removeAttribute("disabled");
+    return (yield fetch(url)).arrayBuffer();
   });
+}
+function init() {
+  const twelfService = new TwelfService(getWasm("assets/twelf.wasm"));
+  const button = document.getElementById("check-button");
+  button.onclick = () => {
+    twelfService.exec(document.getElementById("primary-view").value);
+  };
+  twelfService.hideLoaderAfterFetch();
 }
 init();
 //# sourceMappingURL=bundle.js.map

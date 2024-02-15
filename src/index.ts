@@ -4,6 +4,12 @@ import { WASI } from "@runno/wasi";
 class TwelfService {
   constructor(public twelfWasm: Promise<BufferSource>) { }
 
+  async hideLoaderAfterFetch() {
+    await this.twelfWasm;
+    console.log('hello');
+    document.getElementById('loading-indicator')!.classList.add('hidden');
+  }
+
   async exec(twelfContent: string) {
     const stdin = "loadFile /single.elf\n";
     let stdinMark = 0;
@@ -52,13 +58,17 @@ class TwelfService {
   }
 }
 
-async function init() {
-  const twelfService = new TwelfService((await fetch("assets/twelf.wasm")).arrayBuffer());
+async function getWasm(url: string): Promise<ArrayBuffer> {
+  return (await fetch(url)).arrayBuffer();
+}
+
+function init() {
+  const twelfService = new TwelfService(getWasm("assets/twelf.wasm"));
   const button = document.getElementById('check-button') as HTMLButtonElement;
   button.onclick = () => {
     twelfService.exec((document.getElementById('primary-view') as HTMLTextAreaElement).value);
   }
-  button.removeAttribute('disabled');
+  twelfService.hideLoaderAfterFetch();
 }
 
 init();
