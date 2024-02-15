@@ -2,7 +2,7 @@ import { WASI } from "@runno/wasi";
 
 
 class TwelfService {
-  constructor(public twelfWasm: BufferSource) { }
+  constructor(public twelfWasm: Promise<BufferSource>) { }
 
   async exec(twelfContent: string) {
     const stdin = "loadFile /single.elf\n";
@@ -42,7 +42,7 @@ class TwelfService {
       },
     });
 
-    const wasmInstance = await WebAssembly.instantiate(this.twelfWasm, {
+    const wasmInstance = await WebAssembly.instantiate(await (this.twelfWasm), {
       ...wasi.getImportObject(),
     });
 
@@ -53,7 +53,7 @@ class TwelfService {
 }
 
 async function init() {
-  const twelfService = new TwelfService(await (await fetch("assets/twelf.wasm")).arrayBuffer());
+  const twelfService = new TwelfService((await fetch("assets/twelf.wasm")).arrayBuffer());
   const button = document.getElementById('check-button') as HTMLButtonElement;
   button.onclick = () => {
     twelfService.exec((document.getElementById('primary-view') as HTMLTextAreaElement).value);

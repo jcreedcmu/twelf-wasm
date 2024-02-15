@@ -1520,7 +1520,7 @@ var TwelfService = class {
           }
         }
       });
-      const wasmInstance = yield WebAssembly.instantiate(this.twelfWasm, __spreadValues({}, wasi.getImportObject()));
+      const wasmInstance = yield WebAssembly.instantiate(yield this.twelfWasm, __spreadValues({}, wasi.getImportObject()));
       const result = wasi.start(wasmInstance, {});
       document.getElementById("twelf-response").value = output.slice(3).filter((x2) => x2 != `[Closing file /single.elf]
 `).join("");
@@ -1529,7 +1529,7 @@ var TwelfService = class {
 };
 function init() {
   return __async(this, null, function* () {
-    const twelfService = new TwelfService(yield (yield fetch("assets/twelf.wasm")).arrayBuffer());
+    const twelfService = new TwelfService((yield fetch("assets/twelf.wasm")).arrayBuffer());
     const button = document.getElementById("check-button");
     button.onclick = () => {
       twelfService.exec(document.getElementById("primary-view").value);
