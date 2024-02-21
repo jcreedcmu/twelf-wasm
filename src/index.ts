@@ -51,10 +51,16 @@ class TwelfService {
     const wasmInstance = await WebAssembly.instantiate(await (this.twelfWasm), {
       ...wasi.getImportObject(),
     });
-
-    const result = wasi.start(wasmInstance, {});
-    (document.getElementById('twelf-response') as HTMLTextAreaElement).value =
-      output.slice(3).filter(x => x != `[Closing file /single.elf]\n`).join('');
+    wasi.memory = wasmInstance.instance.exports.memory as WebAssembly.Memory;
+    console.log(Object.keys(wasmInstance.instance.exports));
+    (wasmInstance.instance.exports.export_open as (argc: number, argv: number) => void)(0, 0);
+    (wasmInstance.instance.exports.f3 as () => void)();
+    const rv = (wasmInstance.instance.exports.f as (i: number, r: number, c: number) => number)(42, 5.6, 65);
+    console.log(`return value is ${String.fromCodePoint(rv)}`);
+    console.log(output);
+    // const result = wasi.start(wasmInstance, {});
+    // (document.getElementById('twelf-response') as HTMLTextAreaElement).value =
+    //   output.slice(3).filter(x => x != `[Closing file /single.elf]\n`).join('');
   }
 }
 
@@ -64,7 +70,7 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
 
 function init() {
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
-  const twelfService = new TwelfService(getWasm("assets/twelf.wasm"));
+  const twelfService = new TwelfService(getWasm("assets/func.wasm"));
   const button = document.getElementById('check-button') as HTMLButtonElement;
   function exec() {
     twelfService.exec((document.getElementById('primary-view') as HTMLTextAreaElement).value);

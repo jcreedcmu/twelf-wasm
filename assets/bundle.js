@@ -1498,9 +1498,9 @@ var TwelfService = class {
         const bytes = Math.min(numBytes, stdin.length - stdinMark);
         if (bytes == 0)
           return null;
-        const rv = stdin.substr(stdinMark, bytes);
+        const rv2 = stdin.substr(stdinMark, bytes);
         stdinMark += bytes;
-        return rv;
+        return rv2;
       }
       const output = [];
       const wasi = new H({
@@ -1528,9 +1528,13 @@ var TwelfService = class {
         }
       });
       const wasmInstance = yield WebAssembly.instantiate(yield this.twelfWasm, __spreadValues({}, wasi.getImportObject()));
-      const result = wasi.start(wasmInstance, {});
-      document.getElementById("twelf-response").value = output.slice(3).filter((x2) => x2 != `[Closing file /single.elf]
-`).join("");
+      wasi.memory = wasmInstance.instance.exports.memory;
+      console.log(Object.keys(wasmInstance.instance.exports));
+      wasmInstance.instance.exports.export_open(0, 0);
+      wasmInstance.instance.exports.f3();
+      const rv = wasmInstance.instance.exports.f(42, 5.6, 65);
+      console.log(`return value is ${String.fromCodePoint(rv)}`);
+      console.log(output);
     });
   }
 };
@@ -1541,7 +1545,7 @@ function getWasm(url) {
 }
 function init() {
   document.getElementById("twelf-response").value = "";
-  const twelfService = new TwelfService(getWasm("assets/twelf.wasm"));
+  const twelfService = new TwelfService(getWasm("assets/func.wasm"));
   const button = document.getElementById("check-button");
   function exec() {
     twelfService.exec(document.getElementById("primary-view").value);
