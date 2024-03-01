@@ -168,7 +168,7 @@ async function getWasm(url) {
 }
 async function init() {
   if (window.location.hash) {
-    setText(atob(window.location.hash.substring(1)));
+    setText(atob(decodeURIComponent(window.location.hash.substring(1))));
   }
   document.getElementById("twelf-response").value = "";
   const twelfService = await mkTwelfService("assets/twelf.wasm");
@@ -186,7 +186,7 @@ async function init() {
   checkButton.onclick = exec;
   const shareButton = document.getElementById("share-button");
   shareButton.onclick = () => {
-    window.location.href = window.location.href.split("#")[0] + "#" + btoa(getText());
+    window.location.href = window.location.href.split("#")[0] + "#" + encodeURIComponent(btoa(getText()));
   };
   document.addEventListener("keydown", (e) => {
     if (e.ctrlKey && e.key == "Enter") {

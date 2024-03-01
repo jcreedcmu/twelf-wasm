@@ -87,7 +87,7 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
 
 async function init() {
   if (window.location.hash) {
-    setText(atob(window.location.hash.substring(1)));
+    setText(atob(decodeURIComponent(window.location.hash.substring(1))));
   }
 
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
@@ -112,7 +112,7 @@ async function init() {
 
   const shareButton = document.getElementById('share-button') as HTMLButtonElement;
   shareButton.onclick = () => {
-    window.location.href = window.location.href.split('#')[0] + '#' + btoa(getText());
+    window.location.href = window.location.href.split('#')[0] + '#' + encodeURIComponent(btoa(getText()));
   };
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key == 'Enter') {
