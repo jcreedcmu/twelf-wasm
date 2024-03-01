@@ -86,18 +86,34 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
 }
 
 async function init() {
+  if (window.location.hash) {
+    setText(atob(window.location.hash.substring(1)));
+  }
+
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
   const twelfService = await mkTwelfService("assets/twelf.wasm");
 
   // Hide loading indicator
   document.getElementById('loading-indicator')!.classList.add('hidden');
 
-  const button = document.getElementById('check-button') as HTMLButtonElement;
-  function exec() {
-    twelfService.exec((document.getElementById('primary-view') as HTMLTextAreaElement).value);
+  function getText(): string {
+    return (document.getElementById('primary-view') as HTMLTextAreaElement).value;
   }
-  button.onclick = exec;
 
+  function setText(text: string): void {
+    (document.getElementById('primary-view') as HTMLTextAreaElement).value = text;
+  }
+
+  const checkButton = document.getElementById('check-button') as HTMLButtonElement;
+  const exec = () => {
+    twelfService.exec(getText());
+  }
+  checkButton.onclick = exec;
+
+  const shareButton = document.getElementById('share-button') as HTMLButtonElement;
+  shareButton.onclick = () => {
+    window.location.href = window.location.href.split('#')[0] + '#' + btoa(getText());
+  };
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key == 'Enter') {
       exec();
