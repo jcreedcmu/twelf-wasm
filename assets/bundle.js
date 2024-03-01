@@ -185,8 +185,15 @@ async function init() {
   };
   checkButton.onclick = exec;
   const shareButton = document.getElementById("share-button");
-  shareButton.onclick = () => {
-    window.location.href = window.location.href.split("#")[0] + "#" + encodeURIComponent(btoa(getText()));
+  shareButton.onclick = async () => {
+    const url = window.location.href.split("#")[0] + "#" + encodeURIComponent(btoa(getText()));
+    window.location.href = url;
+    await navigator.clipboard.writeText(url);
+    const indicator = document.getElementById("copy-indicator");
+    indicator.className = "copy-notification-enabled";
+    setTimeout(() => {
+      indicator.className = "copy-notification-disabled";
+    }, 2e3);
   };
   document.addEventListener("keydown", (e) => {
     if (e.ctrlKey && e.key == "Enter") {

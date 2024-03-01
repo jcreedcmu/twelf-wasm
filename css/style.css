@@ -142,3 +142,25 @@ label {
 .hidden {
   display: none;
 }
+
+#copy-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 25px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.copy-notification-enabled {
+  opacity: 1;
+}
+
+.copy-notification-disabled {
+  opacity: 0;
+}
