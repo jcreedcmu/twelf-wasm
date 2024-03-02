@@ -36,6 +36,8 @@ async function decode(fragment) {
   }
 }
 function concatenateUint8Arrays(arrays) {
+  if (arrays.length == 0)
+    return new Uint8Array([]);
   const totalLength = arrays.map((arr) => arr.length).reduce((a, b) => a + b);
   const result = new Uint8Array(totalLength);
   let offset = 0;
