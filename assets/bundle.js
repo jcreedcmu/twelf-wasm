@@ -135,7 +135,7 @@ function environ_sizes_get(mem, env_ptr, env_buf_size_ptr) {
 // src/index.ts
 function debug(_x) {
 }
-async function mkTwelfService(wasmLoc) {
+async function mkTwelfService(wasmLoc, dispatch) {
   const twelfWasm = getWasm(wasmLoc);
   let mem;
   const output = [];
@@ -197,7 +197,7 @@ async function mkTwelfService(wasmLoc) {
   const exports = source.instance.exports;
   mem = exports.memory;
   exports.twelf_open(0, 0);
-  return new TwelfService(source.instance, output);
+  return new TwelfService(source.instance, dispatch, output);
 }
 function showStatus(status) {
   const serverStatus = document.getElementById("server-status");
@@ -220,8 +220,9 @@ function showStatus(status) {
   }
 }
 var TwelfService = class {
-  constructor(instance, output) {
+  constructor(instance, dispatch, output) {
     this.instance = instance;
+    this.dispatch = dispatch;
     this.output = output;
   }
   async exec(input) {
@@ -245,7 +246,23 @@ var TwelfService = class {
         return 1 /* ABORT */;
       }
     })();
-    document.getElementById("twelf-response").value = this.output.join("");
+    const outputText = this.output.join("");
+    const errorRegex = new RegExp("string:(\\d+?).(\\d+?)-(\\d+?).(\\d+?) Error: \n(.*)", "g");
+    let m;
+    const errors = [];
+    while (m = errorRegex.exec(outputText)) {
+      errors.push({
+        range: {
+          line1: parseInt(m[1]),
+          col1: parseInt(m[2]),
+          line2: parseInt(m[3]),
+          col2: parseInt(m[4])
+        },
+        text: m[5]
+      });
+    }
+    this.dispatch({ t: "setErrors", errors });
+    document.getElementById("twelf-response").value = outputText;
     showStatus(status);
   }
 };
@@ -254,14 +271,46 @@ async function getWasm(url) {
 }
 function initEditor() {
   const editor = ace.edit("primary-view");
+  window.editor = editor;
   editor.renderer.setOption("showPrintMargin", false);
   editor.session.setMode("ace/mode/twelf");
   return editor;
 }
+function clearAnnotations(editor) {
+  editor.getSession().clearAnnotations();
+  const markers = editor.getSession().getMarkers();
+  for (const m of Object.values(markers)) {
+    editor.session.removeMarker(m.id);
+  }
+}
 async function initTwelf(editor) {
+  function dispatch(action) {
+    switch (action.t) {
+      case "setErrors": {
+        const annotations = [];
+        let seen = {};
+        action.errors.forEach((error) => {
+          if (!seen[error.range.line1]) {
+            annotations.push(
+              {
+                row: error.range.line1 - 1,
+                column: error.range.col1 - 1,
+                text: error.text,
+                type: "error"
+              }
+            );
+            seen[error.range.line1] = true;
+          }
+        });
+        editor.getSession().setAnnotations(annotations);
+        break;
+      }
+    }
+  }
   document.getElementById("twelf-response").value = "";
-  const twelfService = await mkTwelfService("assets/twelf.wasm");
+  const twelfService = await mkTwelfService("assets/twelf.wasm", dispatch);
   const exec = () => {
+    clearAnnotations(editor);
     twelfService.exec(getText());
   };
   const onclick = () => {

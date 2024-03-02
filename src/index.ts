@@ -1,9 +1,14 @@
-import { Ace } from "../typings/ace";
+import { Ace } from "ace";
 import { decode, encode } from "./encoding";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 
 declare const ace: {
   edit(el: Element | string, options?: Partial<Ace.EditorOptions>): Ace.Editor;
+  Range: {
+    new(startRow: number, startColumn: number, endRow: number, endColumn: number): Ace.Range;
+    fromPoints(start: Ace.Point, end: Ace.Point): Ace.Range;
+    comparePoints(p1: Ace.Point, p2: Ace.Point): number;
+  };
 }
 
 enum Status {
@@ -22,7 +27,17 @@ function debug(_x: string): void {
   // console.log(x);
 }
 
-async function mkTwelfService(wasmLoc: string): Promise<TwelfService> {
+type TwelfError = {
+  range: { line1: number, col1: number, line2: number, col2: number },
+  text: string,
+}
+
+type TwelfAction =
+  | { t: 'setErrors', errors: TwelfError[] };
+
+type TwelfDispatch = (action: TwelfAction) => void;
+
+async function mkTwelfService(wasmLoc: string, dispatch: TwelfDispatch): Promise<TwelfService> {
   const twelfWasm = getWasm(wasmLoc);
 
   let mem: WebAssembly.Memory | undefined;
@@ -59,7 +74,7 @@ async function mkTwelfService(wasmLoc: string): Promise<TwelfService> {
   mem = exports.memory;
   exports.twelf_open(0, 0);
 
-  return new TwelfService(source.instance, output);
+  return new TwelfService(source.instance, dispatch, output);
 }
 
 function showStatus(status: Status) {
@@ -84,7 +99,7 @@ function showStatus(status: Status) {
 
 class TwelfService {
 
-  constructor(public instance: WebAssembly.Instance, public output: string[]) { }
+  constructor(public instance: WebAssembly.Instance, public dispatch: TwelfDispatch, public output: string[]) { }
 
   async exec(input: string) {
     this.output.splice(0); // Erase output
@@ -111,8 +126,24 @@ class TwelfService {
       }
     })();
 
-    (document.getElementById('twelf-response') as HTMLTextAreaElement).value =
-      this.output.join('');
+    const outputText = this.output.join('');
+    const errorRegex = new RegExp('string:(\\d+?).(\\d+?)-(\\d+?).(\\d+?) Error: \n(.*)', 'g');
+    let m;
+    const errors: TwelfError[] = [];
+    while (m = errorRegex.exec(outputText)) {
+      errors.push({
+        range: {
+          line1: parseInt(m[1]),
+          col1: parseInt(m[2]),
+          line2: parseInt(m[3]),
+          col2: parseInt(m[4]),
+        },
+        text: m[5],
+      });
+    }
+    this.dispatch({ t: 'setErrors', errors });
+    (document.getElementById('twelf-response') as HTMLTextAreaElement).value = outputText;
+
     showStatus(status);
   }
 }
@@ -124,17 +155,60 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
 // Initialize ace editor component
 function initEditor(): Ace.Editor {
   const editor = ace.edit('primary-view');
+  (window as any).editor = editor;
   editor.renderer.setOption('showPrintMargin', false);
   editor.session.setMode('ace/mode/twelf');
   return editor;
 }
 
+
+function clearAnnotations(editor: Ace.Editor) {
+  editor.getSession().clearAnnotations();
+  const markers = editor.getSession().getMarkers();
+  for (const m of Object.values(markers)) {
+    editor.session.removeMarker(m.id);
+  }
+}
+
 async function initTwelf(editor: Ace.Editor) {
 
+  function dispatch(action: TwelfAction): void {
+    switch (action.t) {
+      case 'setErrors': {
+
+        const annotations: Ace.Annotation[] = [];
+        let seen: Record<number, boolean> = {};
+
+        action.errors.forEach(error => {
+          if (!seen[error.range.line1]) {
+            annotations.push({
+              row: error.range.line1 - 1,
+              column: error.range.col1 - 1,
+              text: error.text,
+              type: "error"
+            }
+            );
+            seen[error.range.line1] = true;
+          }
+        });
+
+        editor.getSession().setAnnotations(annotations);
+
+        // console.log(editor.getSession().addMarker(
+        //   new ace.Range(action.range.line1 - 1, action.range.col1 - 1, action.range.line2 - 1, action.range.col2 - 1),
+        //   'error',
+        //   'text',
+        //   false));
+        break;
+      }
+    }
+  }
+
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
-  const twelfService = await mkTwelfService('assets/twelf.wasm');
+  const twelfService = await mkTwelfService('assets/twelf.wasm', dispatch);
 
   const exec = () => {
+    clearAnnotations(editor);
     twelfService.exec(getText());
   };
 

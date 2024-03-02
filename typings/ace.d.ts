@@ -1,5 +1,4 @@
 export namespace Ace {
-  interface Foo { }
 
   export type NewLineMode = 'auto' | 'unix' | 'windows';
 
