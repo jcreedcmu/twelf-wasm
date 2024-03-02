@@ -1,5 +1,65 @@
 "use strict";
 
+// src/encoding.ts
+function bytesOfString(str) {
+  return new TextEncoder().encode(str);
+}
+function stringOfBytes(bytes) {
+  return new TextDecoder("utf8").decode(bytes);
+}
+function bytesOfBase64(base64) {
+  const binString = atob(base64.str);
+  return Uint8Array.from(binString, (m) => m.codePointAt(0));
+}
+function base64OfBytes(bytes) {
+  const binString = String.fromCodePoint(...bytes);
+  return { t: "base64", str: btoa(binString) };
+}
+async function compressedOf(bytes) {
+  return await bytesOfStream(streamOfBytes(bytes).pipeThrough(new CompressionStream("gzip")));
+}
+async function decompressedOf(bytes) {
+  return await bytesOfStream(streamOfBytes(bytes).pipeThrough(new DecompressionStream("gzip")));
+}
+async function encode(text) {
+  const x1 = bytesOfString(text);
+  const encoded = encodeURIComponent(base64OfBytes(await compressedOf(bytesOfString(text))).str);
+  return "v2/" + encoded;
+}
+async function decode(fragment) {
+  const uridecoded = decodeURIComponent(fragment);
+  if (uridecoded.match(/^v2\//)) {
+    const stripPrefix = uridecoded.replace(/v2\//, "");
+    return stringOfBytes(await decompressedOf(bytesOfBase64({ t: "base64", str: stripPrefix })));
+  } else {
+    return atob(uridecoded);
+  }
+}
+function concatenateUint8Arrays(arrays) {
+  const totalLength = arrays.map((arr) => arr.length).reduce((a, b) => a + b);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const arr of arrays) {
+    result.set(arr, offset);
+    offset += arr.length;
+  }
+  return result;
+}
+async function bytesOfStream(readableStream) {
+  const reader = readableStream.getReader();
+  let result = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done)
+      break;
+    result.push(value);
+  }
+  return concatenateUint8Arrays(result);
+}
+function streamOfBytes(bytes) {
+  return new Blob([bytes]).stream();
+}
+
 // src/wasi.ts
 var Result = {
   SUCCESS: 0
@@ -168,7 +228,7 @@ async function getWasm(url) {
 }
 async function init() {
   if (window.location.hash) {
-    setText(atob(decodeURIComponent(window.location.hash.substring(1))));
+    setText(await decode(window.location.hash.substring(1)));
   }
   document.getElementById("twelf-response").value = "";
   const twelfService = await mkTwelfService("assets/twelf.wasm");
@@ -186,7 +246,7 @@ async function init() {
   checkButton.onclick = exec;
   const shareButton = document.getElementById("share-button");
   shareButton.onclick = async () => {
-    const url = window.location.href.split("#")[0] + "#" + encodeURIComponent(btoa(getText()));
+    const url = window.location.href.split("#")[0] + "#" + await encode(getText());
     window.location.href = url;
     await navigator.clipboard.writeText(url);
     const indicator = document.getElementById("copy-indicator");

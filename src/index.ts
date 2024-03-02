@@ -1,3 +1,4 @@
+import { decode, encode } from "./encoding";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 
 type TwelfExports = {
@@ -87,7 +88,7 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
 
 async function init() {
   if (window.location.hash) {
-    setText(atob(decodeURIComponent(window.location.hash.substring(1))));
+    setText(await decode(window.location.hash.substring(1)));
   }
 
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
@@ -112,7 +113,7 @@ async function init() {
 
   const shareButton = document.getElementById('share-button') as HTMLButtonElement;
   shareButton.onclick = async () => {
-    const url = window.location.href.split('#')[0] + '#' + encodeURIComponent(btoa(getText()));
+    const url = window.location.href.split('#')[0] + '#' + await encode(getText());
     window.location.href = url;
     await navigator.clipboard.writeText(url);
     const indicator = (document.getElementById('copy-indicator') as HTMLDivElement);
