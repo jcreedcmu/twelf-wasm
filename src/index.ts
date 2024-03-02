@@ -96,6 +96,7 @@ async function init() {
 
   if (window.location.hash) {
     setText(await decode(window.location.hash.substring(1)));
+    history.replaceState(null, 'unused', window.location.href.split('#')[0]);
     exec();
   }
 
