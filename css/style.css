@@ -166,7 +166,7 @@ label {
 }
 
 .spacer {
-  display:inline-block;
+  display: inline-block;
 }
 
 #server-status {
@@ -178,6 +178,10 @@ label {
   font-weight: bold;
   font-size: 0.8rem;
   line-height: 2rem;
+}
+
+.server-status {
+  visibility: hidden;
 }
 
 .server-status::after {
@@ -200,11 +204,13 @@ label {
 .server-status-ok {
   color: white;
   background-image: linear-gradient(to bottom, #7d9d77, #294523);
+  visibility: visible;
 }
 
 .server-status-abort {
   color: white;
   background-image: linear-gradient(to bottom, #ca726d, #652803);
+  visibility: visible;
 }
 
 .control {
