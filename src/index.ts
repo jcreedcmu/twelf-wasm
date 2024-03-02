@@ -1,11 +1,16 @@
 import { decode, encode } from "./encoding";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 
+enum Status {
+  OK = 0,
+  ABORT = 1,
+}
+
 type TwelfExports = {
   memory: WebAssembly.Memory;
   twelf_open(argc: number, argv: number): void;
   allocate(size: number): number;
-  execute(): number;
+  execute(): Status;
 };
 
 function debug(_x: string): void {
@@ -52,21 +57,17 @@ async function mkTwelfService(wasmLoc: string): Promise<TwelfService> {
   return new TwelfService(source.instance, output);
 }
 
-enum Status {
-  OK = 0,
-  ABORT = 1,
-}
-
 function showStatus(status: Status) {
   const serverStatus = (document.getElementById('server-status') as HTMLDivElement);
 
   switch (status) {
     case Status.OK: {
       serverStatus.className = 'server-status server-status-ok';
+      serverStatus.innerText = 'Server OK';
+
       setTimeout(() => {
         serverStatus.classList.add('server-status-flash');
       }, 0);
-      serverStatus.innerText = 'Server OK';
     }
       break;
     case Status.ABORT: {
@@ -85,22 +86,25 @@ class TwelfService {
 
     const exports = this.instance.exports as TwelfExports;
     const mem = exports.memory;
-    let status;
-    try {
-      const data = new TextEncoder().encode(input);
-      const length = data.length;
-      const inputBuf = exports.allocate(length);
-      const buffer = new Uint8Array(
-        mem.buffer,
-        inputBuf,
-        length,
-      );
-      buffer.set(data);
-      status = exports.execute();
-    }
-    catch (e) {
-      console.error(e);
-    }
+
+    let status = (() => {
+      try {
+        const data = new TextEncoder().encode(input);
+        const length = data.length;
+        const inputBuf = exports.allocate(length);
+        const buffer = new Uint8Array(
+          mem.buffer,
+          inputBuf,
+          length,
+        );
+        buffer.set(data);
+        return exports.execute();
+      }
+      catch (e) {
+        console.error(e);
+        return Status.ABORT;
+      }
+    })();
 
     (document.getElementById('twelf-response') as HTMLTextAreaElement).value =
       this.output.join('');
@@ -127,7 +131,7 @@ async function init() {
 
   if (window.location.hash) {
     setText(await decode(window.location.hash.substring(1)));
-    history.replaceState(null, 'unused', window.location.href.split('#')[0]);
+    // history.replaceState(null, 'unused', window.location.href.split('#')[0]);
     exec();
   }
   else {

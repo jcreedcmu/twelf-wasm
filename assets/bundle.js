@@ -205,10 +205,10 @@ function showStatus(status) {
     case 0 /* OK */:
       {
         serverStatus.className = "server-status server-status-ok";
+        serverStatus.innerText = "Server OK";
         setTimeout(() => {
           serverStatus.classList.add("server-status-flash");
         }, 0);
-        serverStatus.innerText = "Server OK";
       }
       break;
     case 1 /* ABORT */:
@@ -228,21 +228,23 @@ var TwelfService = class {
     this.output.splice(0);
     const exports = this.instance.exports;
     const mem = exports.memory;
-    let status;
-    try {
-      const data = new TextEncoder().encode(input);
-      const length = data.length;
-      const inputBuf = exports.allocate(length);
-      const buffer = new Uint8Array(
-        mem.buffer,
-        inputBuf,
-        length
-      );
-      buffer.set(data);
-      status = exports.execute();
-    } catch (e) {
-      console.error(e);
-    }
+    let status = (() => {
+      try {
+        const data = new TextEncoder().encode(input);
+        const length = data.length;
+        const inputBuf = exports.allocate(length);
+        const buffer = new Uint8Array(
+          mem.buffer,
+          inputBuf,
+          length
+        );
+        buffer.set(data);
+        return exports.execute();
+      } catch (e) {
+        console.error(e);
+        return 1 /* ABORT */;
+      }
+    })();
     document.getElementById("twelf-response").value = this.output.join("");
     showStatus(status);
   }
@@ -262,7 +264,6 @@ async function init() {
   };
   if (window.location.hash) {
     setText(await decode(window.location.hash.substring(1)));
-    history.replaceState(null, "unused", window.location.href.split("#")[0]);
     exec();
   } else {
     const savedElf = localStorage.getItem("savedElf");

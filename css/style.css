@@ -181,25 +181,30 @@ label {
 }
 
 .server-status {
+  position: relative;
   visibility: hidden;
+  overflow: hidden;
 }
 
 .server-status::after {
   content: '';
   display: block;
   position: absolute;
-  background: rgba(255, 255, 255, 0.35);
-  width: 60px;
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.0), rgba(255, 255, 255, 0.35));
+  width: 4rem;
   height: 100%;
   top: 0;
-  transform: translateX(-100px) skewX(-15deg);
+  transform: translateX(-7rem) skewX(-15deg);
   pointer-events: none;
 }
 
 .server-status-flash::after {
-   transform: translateX(200px) skewX(-15deg);
-   transition: 1s;
+  transform: translateX(7rem) skewX(-15deg);
+  transition: 1s;
+  transition-timing-function: ease-in-out;
 }
+
+
 
 .server-status-ok {
   color: white;
