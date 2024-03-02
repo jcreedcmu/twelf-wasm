@@ -197,6 +197,23 @@ async function mkTwelfService(wasmLoc) {
   exports.twelf_open(0, 0);
   return new TwelfService(source.instance, output);
 }
+function showStatus(status) {
+  const serverStatus = document.getElementById("server-status");
+  switch (status) {
+    case 0 /* OK */:
+      {
+        serverStatus.className = "server-status-ok";
+        serverStatus.innerText = "Server OK";
+      }
+      break;
+    case 1 /* ABORT */:
+      {
+        serverStatus.className = "server-status-abort";
+        serverStatus.innerText = "Server ABORT";
+      }
+      break;
+  }
+}
 var TwelfService = class {
   constructor(instance, output) {
     this.instance = instance;
@@ -206,6 +223,7 @@ var TwelfService = class {
     this.output.splice(0);
     const exports = this.instance.exports;
     const mem = exports.memory;
+    let status;
     try {
       const data = new TextEncoder().encode(input);
       const length = data.length;
@@ -216,11 +234,12 @@ var TwelfService = class {
         length
       );
       buffer.set(data);
-      exports.execute();
+      status = exports.execute();
     } catch (e) {
       console.error(e);
     }
     document.getElementById("twelf-response").value = this.output.join("");
+    showStatus(status);
   }
 };
 async function getWasm(url) {

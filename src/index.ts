@@ -5,7 +5,7 @@ type TwelfExports = {
   memory: WebAssembly.Memory;
   twelf_open(argc: number, argv: number): void;
   allocate(size: number): number;
-  execute(): void;
+  execute(): number;
 };
 
 function debug(_x: string): void {
@@ -52,6 +52,27 @@ async function mkTwelfService(wasmLoc: string): Promise<TwelfService> {
   return new TwelfService(source.instance, output);
 }
 
+enum Status {
+  OK = 0,
+  ABORT = 1,
+}
+
+function showStatus(status: Status) {
+  const serverStatus = (document.getElementById('server-status') as HTMLDivElement);
+
+  switch (status) {
+    case Status.OK: {
+      serverStatus.className = 'server-status-ok';
+      serverStatus.innerText = 'Server OK';
+    }
+      break;
+    case Status.ABORT: {
+      serverStatus.className = 'server-status-abort';
+      serverStatus.innerText = 'Server ABORT';
+    } break;
+  }
+}
+
 class TwelfService {
 
   constructor(public instance: WebAssembly.Instance, public output: string[]) { }
@@ -61,6 +82,7 @@ class TwelfService {
 
     const exports = this.instance.exports as TwelfExports;
     const mem = exports.memory;
+    let status;
     try {
       const data = new TextEncoder().encode(input);
       const length = data.length;
@@ -71,7 +93,7 @@ class TwelfService {
         length,
       );
       buffer.set(data);
-      exports.execute();
+      status = exports.execute();
     }
     catch (e) {
       console.error(e);
@@ -79,6 +101,7 @@ class TwelfService {
 
     (document.getElementById('twelf-response') as HTMLTextAreaElement).value =
       this.output.join('');
+    showStatus(status);
   }
 }
 
