@@ -227,11 +227,15 @@ async function getWasm(url) {
   return (await fetch(url)).arrayBuffer();
 }
 async function init() {
-  if (window.location.hash) {
-    setText(await decode(window.location.hash.substring(1)));
-  }
   document.getElementById("twelf-response").value = "";
   const twelfService = await mkTwelfService("assets/twelf.wasm");
+  const exec = () => {
+    twelfService.exec(getText());
+  };
+  if (window.location.hash) {
+    setText(await decode(window.location.hash.substring(1)));
+    exec();
+  }
   document.getElementById("loading-indicator").classList.add("hidden");
   function getText() {
     return document.getElementById("primary-view").value;
@@ -240,9 +244,6 @@ async function init() {
     document.getElementById("primary-view").value = text;
   }
   const checkButton = document.getElementById("check-button");
-  const exec = () => {
-    twelfService.exec(getText());
-  };
   checkButton.onclick = exec;
   const shareButton = document.getElementById("share-button");
   shareButton.onclick = async () => {

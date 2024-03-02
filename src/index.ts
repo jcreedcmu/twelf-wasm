@@ -87,12 +87,17 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
 }
 
 async function init() {
-  if (window.location.hash) {
-    setText(await decode(window.location.hash.substring(1)));
-  }
-
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
   const twelfService = await mkTwelfService("assets/twelf.wasm");
+
+  const exec = () => {
+    twelfService.exec(getText());
+  };
+
+  if (window.location.hash) {
+    setText(await decode(window.location.hash.substring(1)));
+    exec();
+  }
 
   // Hide loading indicator
   document.getElementById('loading-indicator')!.classList.add('hidden');
@@ -106,9 +111,6 @@ async function init() {
   }
 
   const checkButton = document.getElementById('check-button') as HTMLButtonElement;
-  const exec = () => {
-    twelfService.exec(getText());
-  }
   checkButton.onclick = exec;
 
   const shareButton = document.getElementById('share-button') as HTMLButtonElement;
