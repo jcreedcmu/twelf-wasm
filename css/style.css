@@ -69,7 +69,16 @@ pre {
   height: 1.5rem;
 }
 
+#primary-view {
+  position: absolute;
+  top: 0;
+  left: 1.5rem;
+  right: 0;
+  bottom: 0;
+}
+
 #primary-view-wrap {
+  position: relative;
   height: calc(var(--size) + 2px);
 }
 

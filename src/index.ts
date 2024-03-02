@@ -146,11 +146,11 @@ async function init() {
   document.getElementById('loading-indicator')!.classList.add('hidden');
 
   function getText(): string {
-    return (document.getElementById('primary-view') as HTMLTextAreaElement).value;
+    return editor.getValue();
   }
 
   function setText(text: string): void {
-    (document.getElementById('primary-view') as HTMLTextAreaElement).value = text;
+    editor.setValue(text, 1);
   }
 
   const checkButton = document.getElementById('check-button') as HTMLButtonElement;
@@ -170,6 +170,7 @@ async function init() {
       onclick();
     }
   });
+  editor.focus();
 }
 
 init();

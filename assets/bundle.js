@@ -274,10 +274,10 @@ async function init() {
   }
   document.getElementById("loading-indicator").classList.add("hidden");
   function getText() {
-    return document.getElementById("primary-view").value;
+    return editor.getValue();
   }
   function setText(text) {
-    document.getElementById("primary-view").value = text;
+    editor.setValue(text, 1);
   }
   const checkButton = document.getElementById("check-button");
   checkButton.onclick = onclick;
@@ -297,6 +297,7 @@ async function init() {
       onclick();
     }
   });
+  editor.focus();
 }
 init();
 //# sourceMappingURL=bundle.js.map

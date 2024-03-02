@@ -12,28 +12,36 @@
     <title>Twelf Sandbox</title>
 
     <link rel="stylesheet" href="css/style.css">
-    <body>
-      <div id="app">
-        <h1>Twelf Sandbox</h1>
-        <div class="wrap" id="primary-view-wrap">
-          <textarea id="primary-view" spellcheck="false"></textarea>
-        </div>
-        <div class="control">
-          <button id="check-button">Check</button>
-          <button id="share-button">Share</button>
-          <span id="loading-indicator"><span class="loader"></span><em>Loading Twelf Wasm...</em></span>
-          <div class="spacer"></div>
-          <div id="server-status" class="server-status server-status-ok">Server OK</div>
-        </div>
-        <div class="wrap" id="twelf-response-wrap">
-          <textarea readonly id="twelf-response" spellcheck="false"></textarea>
-        </div>
+  </head>
+  <body>
+    <div id="app">
+      <h1>Twelf Sandbox</h1>
+
+      <div class="wrap" id="primary-view-wrap">
+        <div id="primary-view"></div>
       </div>
-      <div style="margin-left: 3em; margin-top: 3em; font-size: 0.8rem;">
-        <a href="http://twelf.org/wiki/Main_Page">Twelf</a> on Wasm is made possible by <a href="https://twelf-live.onrender.com/">Twelf Live</a> and
-        <a href="https://github.com/MLton/mlton/pull/550">this MLton PR</a>, which adds a cross-compilation target for Wasm/WASI. <a href="https://github.com/jcreedcmu/twelf-wasm/">Source to this repo</a>. As a shortcut, <tt>Ctrl-Enter</tt> also checks file.
+      <div class="control">
+        <button id="check-button">Check</button>
+        <button id="share-button">Share</button>
+        <span id="loading-indicator"><span class="loader"></span><em>Loading Twelf Wasm...</em></span>
+        <div class="spacer"></div>
+        <div id="server-status" class="server-status server-status-ok">Server OK</div>
       </div>
-      <div id="copy-indicator" class="copy-notification-disabled"><b>Copied URL to clipboard</b></div>
-    </body>
-    <script src="assets/bundle.js"></script>
+      <div class="wrap" id="twelf-response-wrap">
+        <textarea readonly id="twelf-response" spellcheck="false"></textarea>
+      </div>
+    </div>
+    <div style="margin-left: 3em; margin-top: 3em; font-size: 0.8rem;">
+      <a href="http://twelf.org/wiki/Main_Page">Twelf</a> on Wasm is made possible by <a href="https://twelf-live.onrender.com/">Twelf Live</a> and
+      <a href="https://github.com/MLton/mlton/pull/550">this MLton PR</a>, which adds a cross-compilation target for Wasm/WASI. <a href="https://github.com/jcreedcmu/twelf-wasm/">Source to this repo</a>. As a shortcut, <tt>Ctrl-Enter</tt> also checks file.
+    </div>
+    <div id="copy-indicator" class="copy-notification-disabled"><b>Copied URL to clipboard</b></div>
+  </body>
+<script src="assets/vendor/ace.js"></script>
+  <script>
+    const editor = ace.edit("primary-view");
+    editor.renderer.setOption("showPrintMargin", false);
+  </script>
+  <script src="assets/bundle.js"></script>
+
 </html>
