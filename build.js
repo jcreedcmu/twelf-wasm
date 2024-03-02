@@ -9,6 +9,7 @@ const args = process.argv.slice(2);
 	 sourcemap: true,
 	 bundle: true,
 	 outfile: './assets/bundle.js',
+    external: ['ace'],
 	 format: 'cjs',
 	 logLevel: 'info',
 	 watch: args[0] == 'watch',

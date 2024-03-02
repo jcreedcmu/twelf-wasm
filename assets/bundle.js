@@ -252,7 +252,13 @@ var TwelfService = class {
 async function getWasm(url) {
   return (await fetch(url)).arrayBuffer();
 }
-async function init() {
+function initEditor() {
+  const editor = ace.edit("primary-view");
+  editor.renderer.setOption("showPrintMargin", false);
+  editor.session.setMode("ace/mode/twelf");
+  return editor;
+}
+async function initTwelf(editor) {
   document.getElementById("twelf-response").value = "";
   const twelfService = await mkTwelfService("assets/twelf.wasm");
   const exec = () => {
@@ -299,5 +305,5 @@ async function init() {
   });
   editor.focus();
 }
-init();
+initTwelf(initEditor());
 //# sourceMappingURL=bundle.js.map

@@ -1,12 +1,5 @@
-type AceRenderer = {
-  setOption(option: any, value: any): void;
-};
+import { Ace as AceImpl } from 'ace';
 
-type AceEditor = {
-  getValue(): string;
-  setValue(text: string, index?: number): void;
-  renderer: AceRenderer;
-  focus(): void;
-};
+export namespace Ace {
 
-declare const editor: AceEditor;
+}

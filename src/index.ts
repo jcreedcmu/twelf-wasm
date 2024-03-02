@@ -1,5 +1,10 @@
+import { Ace } from "../typings/ace";
 import { decode, encode } from "./encoding";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
+
+declare const ace: {
+  edit(el: Element | string, options?: Partial<Ace.EditorOptions>): Ace.Editor;
+}
 
 enum Status {
   OK = 0,
@@ -116,9 +121,18 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
   return (await fetch(url)).arrayBuffer();
 }
 
-async function init() {
+// Initialize ace editor component
+function initEditor(): Ace.Editor {
+  const editor = ace.edit('primary-view');
+  editor.renderer.setOption('showPrintMargin', false);
+  editor.session.setMode('ace/mode/twelf');
+  return editor;
+}
+
+async function initTwelf(editor: Ace.Editor) {
+
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
-  const twelfService = await mkTwelfService("assets/twelf.wasm");
+  const twelfService = await mkTwelfService('assets/twelf.wasm');
 
   const exec = () => {
     twelfService.exec(getText());
@@ -173,4 +187,4 @@ async function init() {
   editor.focus();
 }
 
-init();
+initTwelf(initEditor());
