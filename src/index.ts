@@ -120,10 +120,22 @@ async function init() {
     twelfService.exec(getText());
   };
 
+  const onclick = () => {
+    localStorage.setItem('savedElf', getText());
+    exec();
+  };
+
   if (window.location.hash) {
     setText(await decode(window.location.hash.substring(1)));
     history.replaceState(null, 'unused', window.location.href.split('#')[0]);
     exec();
+  }
+  else {
+    const savedElf = localStorage.getItem('savedElf');
+    if (savedElf != undefined) {
+      setText(savedElf);
+      exec();
+    }
   }
 
   // Hide loading indicator
@@ -138,7 +150,7 @@ async function init() {
   }
 
   const checkButton = document.getElementById('check-button') as HTMLButtonElement;
-  checkButton.onclick = exec;
+  checkButton.onclick = onclick;
 
   const shareButton = document.getElementById('share-button') as HTMLButtonElement;
   shareButton.onclick = async () => {
@@ -151,7 +163,7 @@ async function init() {
   };
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key == 'Enter') {
-      exec();
+      onclick();
     }
   });
 }
