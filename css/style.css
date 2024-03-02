@@ -180,6 +180,23 @@ label {
   line-height: 2rem;
 }
 
+.server-status::after {
+  content: '';
+  display: block;
+  position: absolute;
+  background: rgba(255, 255, 255, 0.35);
+  width: 60px;
+  height: 100%;
+  top: 0;
+  transform: translateX(-100px) skewX(-15deg);
+  pointer-events: none;
+}
+
+.server-status-flash::after {
+   transform: translateX(200px) skewX(-15deg);
+   transition: 1s;
+}
+
 .server-status-ok {
   color: white;
   background-image: linear-gradient(to bottom, #7d9d77, #294523);

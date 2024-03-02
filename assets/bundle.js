@@ -202,13 +202,16 @@ function showStatus(status) {
   switch (status) {
     case 0 /* OK */:
       {
-        serverStatus.className = "server-status-ok";
+        serverStatus.className = "server-status server-status-ok";
+        setTimeout(() => {
+          serverStatus.classList.add("server-status-flash");
+        }, 0);
         serverStatus.innerText = "Server OK";
       }
       break;
     case 1 /* ABORT */:
       {
-        serverStatus.className = "server-status-abort";
+        serverStatus.className = "server-status server-status-abort";
         serverStatus.innerText = "Server ABORT";
       }
       break;
