@@ -313,8 +313,9 @@ async function initTwelf(editor) {
     clearAnnotations(editor);
     twelfService.exec(getText());
   };
-  const onclick = () => {
+  const saveAndExec = async () => {
     localStorage.setItem("savedElf", getText());
+    const url = await setUrlFragmentToSharableLink();
     exec();
   };
   if (window.location.hash) {
@@ -328,6 +329,11 @@ async function initTwelf(editor) {
     }
   }
   document.getElementById("loading-indicator").classList.add("hidden");
+  async function setUrlFragmentToSharableLink() {
+    const url = window.location.href.split("#")[0] + "#" + await encode(getText());
+    history.replaceState(null, "unused", url);
+    return url;
+  }
   function getText() {
     return editor.getValue();
   }
@@ -335,11 +341,10 @@ async function initTwelf(editor) {
     editor.setValue(text, 1);
   }
   const checkButton = document.getElementById("check-button");
-  checkButton.onclick = onclick;
+  checkButton.onclick = saveAndExec;
   const shareButton = document.getElementById("share-button");
   shareButton.onclick = async () => {
-    const url = window.location.href.split("#")[0] + "#" + await encode(getText());
-    window.location.href = url;
+    const url = await setUrlFragmentToSharableLink();
     await navigator.clipboard.writeText(url);
     const indicator = document.getElementById("copy-indicator");
     indicator.className = "copy-notification-enabled";
@@ -349,7 +354,7 @@ async function initTwelf(editor) {
   };
   document.addEventListener("keydown", (e) => {
     if (e.ctrlKey && e.key == "Enter") {
-      onclick();
+      saveAndExec();
     }
   });
   editor.focus();
