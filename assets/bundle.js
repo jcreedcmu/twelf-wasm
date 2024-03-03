@@ -207,8 +207,9 @@ function showStatus(status) {
         serverStatus.className = "server-status server-status-ok";
         serverStatus.innerText = "Server OK";
         setTimeout(() => {
+          console.log("wat");
           serverStatus.classList.add("server-status-flash");
-        }, 0);
+        }, 10);
       }
       break;
     case 1 /* ABORT */:

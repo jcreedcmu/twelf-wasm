@@ -213,8 +213,6 @@ label {
   transition-timing-function: ease-in-out;
 }
 
-
-
 .server-status-ok {
   color: white;
   background-image: linear-gradient(to bottom, #7d9d77, #294523);

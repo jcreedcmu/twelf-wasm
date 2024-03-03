@@ -86,8 +86,9 @@ function showStatus(status: Status) {
       serverStatus.innerText = 'Server OK';
 
       setTimeout(() => {
+        console.log('wat');
         serverStatus.classList.add('server-status-flash');
-      }, 0);
+      }, 10);
     }
       break;
     case Status.ABORT: {
