@@ -9,7 +9,7 @@ build:
 	node build.js
 
 serve:
-	python3 -m http.server
+	cd public && python3 -m http.server
 
 parser:
 	npm run build-parser

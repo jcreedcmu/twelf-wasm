@@ -8,7 +8,7 @@ async function go() {
     minify: false,
     sourcemap: true,
     bundle: true,
-    outfile: './assets/bundle.js',
+    outfile: './public/assets/bundle.js',
     logLevel: 'info',
     format: 'iife',
   })
