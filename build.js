@@ -17,7 +17,8 @@ async function go() {
     await context.watch()
   }
   else {
-    const result = await context.rebuild()
+    const result = await context.rebuild();
+    process.exit(0);
   }
 }
 
