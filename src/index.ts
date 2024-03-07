@@ -1,15 +1,6 @@
-import { Ace } from "ace";
+import { EditorView, basicSetup } from "codemirror"
 import { decode, encode } from "./encoding";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
-
-declare const ace: {
-  edit(el: Element | string, options?: Partial<Ace.EditorOptions>): Ace.Editor;
-  Range: {
-    new(startRow: number, startColumn: number, endRow: number, endColumn: number): Ace.Range;
-    fromPoints(start: Ace.Point, end: Ace.Point): Ace.Range;
-    comparePoints(p1: Ace.Point, p2: Ace.Point): number;
-  };
-}
 
 enum Status {
   OK = 0,
@@ -86,7 +77,6 @@ function showStatus(status: Status) {
       serverStatus.innerText = 'Server OK';
 
       setTimeout(() => {
-        console.log('wat');
         serverStatus.classList.add('server-status-flash');
       }, 10);
     }
@@ -153,53 +143,58 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
   return (await fetch(url)).arrayBuffer();
 }
 
-// Initialize ace editor component
-function initEditor(): Ace.Editor {
-  const editor = ace.edit('primary-view');
+
+// Initialize editor component
+function initEditor(): EditorView {
+  const editor = new EditorView({
+    extensions: [basicSetup,
+      // These css tweaks came from the "See this example" in
+      // https://discuss.codemirror.net/t/fill-a-div-with-the-editor/5248/2
+      // I'm not convinced the overflow auto is actually required, but
+      // leaving it in anyway
+      EditorView.theme({
+        "&.cm-editor": { height: "100%" },
+        ".cm-scroller": { overflow: "auto" }
+      })],
+    parent: document.getElementById('primary-view') as HTMLDivElement,
+  });
   (window as any).editor = editor;
-  editor.renderer.setOption('showPrintMargin', false);
-  editor.session.setMode('ace/mode/twelf');
   return editor;
 }
 
 
-function clearAnnotations(editor: Ace.Editor) {
-  editor.getSession().clearAnnotations();
-  const markers = editor.getSession().getMarkers();
-  for (const m of Object.values(markers)) {
-    editor.session.removeMarker(m.id);
-  }
+function clearAnnotations(editor: EditorView) {
+  // editor.getSession().clearAnnotations();
+  // const markers = editor.getSession().getMarkers();
+  // for (const m of Object.values(markers)) {
+  //   editor.session.removeMarker(m.id);
+  // }
 }
 
-async function initTwelf(editor: Ace.Editor) {
+async function initTwelf(editor: EditorView) {
 
   function dispatch(action: TwelfAction): void {
     switch (action.t) {
       case 'setErrors': {
 
-        const annotations: Ace.Annotation[] = [];
-        let seen: Record<number, boolean> = {};
+        // const annotations: Ace.Annotation[] = [];
+        // let seen: Record<number, boolean> = {};
 
-        action.errors.forEach(error => {
-          if (!seen[error.range.line1]) {
-            annotations.push({
-              row: error.range.line1 - 1,
-              column: error.range.col1 - 1,
-              text: error.text,
-              type: "error"
-            }
-            );
-            seen[error.range.line1] = true;
-          }
-        });
+        // action.errors.forEach(error => {
+        //   if (!seen[error.range.line1]) {
+        //     annotations.push({
+        //       row: error.range.line1 - 1,
+        //       column: error.range.col1 - 1,
+        //       text: error.text,
+        //       type: "error"
+        //     }
+        //     );
+        //     seen[error.range.line1] = true;
+        //   }
+        // });
 
-        editor.getSession().setAnnotations(annotations);
+        // editor.getSession().setAnnotations(annotations);
 
-        // console.log(editor.getSession().addMarker(
-        //   new ace.Range(action.range.line1 - 1, action.range.col1 - 1, action.range.line2 - 1, action.range.col2 - 1),
-        //   'error',
-        //   'text',
-        //   false));
         break;
       }
     }
@@ -241,11 +236,13 @@ async function initTwelf(editor: Ace.Editor) {
   }
 
   function getText(): string {
-    return editor.getValue();
+    return editor.state.doc.toString();
   }
 
   function setText(text: string): void {
-    editor.setValue(text, 1);
+    editor.dispatch({
+      changes: { from: 0, to: editor.state.doc.length, insert: text }
+    });
   }
 
   const checkButton = document.getElementById('check-button') as HTMLButtonElement;
@@ -259,10 +256,17 @@ async function initTwelf(editor: Ace.Editor) {
     indicator.className = 'copy-notification-enabled';
     setTimeout(() => { indicator.className = 'copy-notification-disabled'; }, 2000);
   };
-  document.addEventListener('keydown', (e) => {
+  editor.contentDOM.addEventListener('keydown', e => {
     if (e.ctrlKey && e.key == 'Enter') {
       saveAndExec(); // async
+      e.stopPropagation();
+      e.preventDefault();
     }
+  }, {
+    // So that we can intercept the <C-enter> during capture phase,
+    // before codemirror sees it and decides to insert an actual
+    // newline.
+    capture: true
   });
   editor.focus();
 }

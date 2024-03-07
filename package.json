@@ -1,6 +1,5 @@
 {
   "name": "twelf-live",
-
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,9 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/codemirror": "^5.60.15",
+    "codemirror": "^6.0.1",
+    "esbuild": "^0.20.1"
   },
   "devDependencies": {
-    "esbuild": "^0.16.0",
     "typescript": "^5.3.3"
   }
 }

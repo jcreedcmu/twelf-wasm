@@ -1,17 +1,24 @@
-const { build } = require('esbuild');
+const esbuild = require('esbuild');
 
-const args = process.argv.slice(2);
+async function go() {
+  const args = process.argv.slice(2);
 
-(async () => {
-  await build({
-	 entryPoints: ['./src/index.ts'],
-	 minify: false,
-	 sourcemap: true,
-	 bundle: true,
-	 outfile: './assets/bundle.js',
-    external: ['ace'],
-	 format: 'cjs',
-	 logLevel: 'info',
-	 watch: args[0] == 'watch',
-  });
-})();
+  const context = await esbuild.context({
+    entryPoints: ['./src/index.ts'],
+    minify: false,
+    sourcemap: true,
+    bundle: true,
+    outfile: './assets/bundle.js',
+    logLevel: 'info',
+    format: 'iife',
+  })
+
+  if (args[0] == 'watch') {
+    await context.watch()
+  }
+  else {
+    const result = await context.rebuild()
+  }
+}
+
+go();
