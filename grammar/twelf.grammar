@@ -1,0 +1,10 @@
+@top File { (Identifier | Number | String)+ }
+
+@skip { space }
+
+@tokens {
+  space { @whitespace+ }
+  Identifier { $[A-Za-z_]+ }
+  Number { $[0-9]+ }
+  String { '"' !["]* '"' }
+}

@@ -10,3 +10,6 @@ build:
 
 serve:
 	python3 -m http.server
+
+parser:
+	npm run build-parser
