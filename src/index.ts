@@ -1,7 +1,8 @@
 import { EditorView, basicSetup } from "codemirror"
+import { syntaxHighlighting } from '@codemirror/language';
 import { decode, encode } from "./encoding";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
-import { twelf as twelfMode } from './twelf-mode';
+import { twelfHighlightStyle, twelf as twelfMode } from './twelf-mode';
 
 enum Status {
   OK = 0,
@@ -149,6 +150,7 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
 function initEditor(): EditorView {
   const editor = new EditorView({
     extensions: [basicSetup,
+      syntaxHighlighting(twelfHighlightStyle),
       twelfMode(),
       // These css tweaks came from the "See this example" in
       // https://discuss.codemirror.net/t/fill-a-div-with-the-editor/5248/2

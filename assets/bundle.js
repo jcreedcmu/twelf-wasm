@@ -22994,7 +22994,7 @@
     maxTerm: 15,
     skippedNodes: [0, 1],
     repeatNodeCount: 1,
-    tokenData: "'|~RgXY!jYZ!j]^!jpq!jqr!{st!{tu!{uv$Vvw!{wx!{z}!{}!O!{!O!P%b!P![!{![!]%g!]!c!{!c!}%l#Q#o!{#p#q!{#r#s!{$g;'S!{;'S;=`$P<%lO!{~!oS]~XY!jYZ!j]^!jpq!j~#Q_U~qr!{st!{tu!{vw!{wx!{z}!{}!O!{!P![!{!]!}!{#Q#o!{#p#q!{#r#s!{$g;'S!{;'S;=`$P<%lO!{~$SP;=`<%l!{~$YTYZ$ipq$nuv$n!c!}%V#T#o%V~$nOP~~$sSP~OY$nZ;'S$n;'S;=`%P<%lO$n~%SP;=`<%l$n~%[QV~!c!}%V#T#o%V~%gOS~~%lOR~~%q_U~qr&pst&ptu&pvw&pwx&pz}&p}!O&p!P![&p!]!}&p#Q#o&p#p#q&p#r#s&p$g;'S&p;'S;=`'v<%lO&p~&w_T~U~qr&pst&ptu&pvw&pwx&pz}&p}!O&p!P![&p!]!}&p#Q#o&p#p#q&p#r#s&p$g;'S&p;'S;=`'v<%lO&p~'yP;=`<%l&p",
+    tokenData: "&x~RgXY!jYZ!j]^!jpq!jqr!{st!{tu!{uv$Vvw!{wx!{z}!{}!O!{!O!P%b!P![!{![!]%g!]!c!{!c!}%l#Q#o!{#p#q!{#r#s!{$g;'S!{;'S;=`$P<%lO!{~!oS]~XY!jYZ!j]^!jpq!j~#Q_U~qr!{st!{tu!{vw!{wx!{z}!{}!O!{!P![!{!]!}!{#Q#o!{#p#q!{#r#s!{$g;'S!{;'S;=`$P<%lO!{~$SP;=`<%l!{~$YTYZ$ipq$nuv$n!c!}%V#T#o%V~$nOP~~$sSP~OY$nZ;'S$n;'S;=`%P<%lO$n~%SP;=`<%l$n~%[QV~!c!}%V#T#o%V~%gOS~~%lOR~~%s_T~U~qr%lst%ltu%lvw%lwx%lz}%l}!O%l!P![%l!]!}%l#Q#o%l#p#q%l#r#s%l$g;'S%l;'S;=`&r<%lO%l~&uP;=`<%l%l",
     tokenizers: [0],
     topRules: { "File": [0, 2] },
     specialized: [{ term: 6, get: (value) => spec_Identifier[value] || -1 }],
@@ -23002,13 +23002,19 @@
   });
 
   // src/twelf-mode.ts
+  var twelfHighlightStyle = HighlightStyle.define([
+    ...defaultHighlightStyle.specs,
+    { tag: tags.variableName, color: "#0a0" },
+    { tag: tags.atom, color: "#000" },
+    { tag: tags.comment, color: "#777", fontStyle: "italic" }
+  ]);
   var twelfLanguage = LRLanguage.define({
     name: "twelf",
     parser: parser.configure({
       props: [
         styleTags({
-          Identifier: tags.variableName,
-          FVar: tags.keyword,
+          Identifier: tags.atom,
+          FVar: tags.variableName,
           LineComment: tags.comment,
           Pragma: tags.keyword,
           Type: tags.keyword
@@ -23166,6 +23172,7 @@
     const editor = new EditorView({
       extensions: [
         basicSetup,
+        syntaxHighlighting(twelfHighlightStyle),
         twelf(),
         // These css tweaks came from the "See this example" in
         // https://discuss.codemirror.net/t/fill-a-div-with-the-editor/5248/2

@@ -8,10 +8,11 @@
   Colon{':'} Period{'.'}
   identifierChar { $[-\!|#$&'*-,/-9;-Z^-z~\u{a1}-\u{10ffff}] }
   Identifier { identifierChar+ }
-  FVar { $[A-Z] identifierChar+ }
+  FVar { $[A-Z] identifierChar* }
   @precedence {FVar, Identifier}
   LineComment { (('% '|'%%') ![\n]*) | '%\n' }
   Pragma { '%' $[a-zA-Z]+ }
+
 }
 
 Arrow {
