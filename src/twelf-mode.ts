@@ -8,9 +8,11 @@ export const twelfLanguage = LRLanguage.define({
   parser: parser.configure({
     props: [
       styleTags({
-        String: t.string,
-        Number: t.number,
-        Identifier: t.keyword,
+        Identifier: t.variableName,
+        FVar: t.keyword,
+        LineComment: t.comment,
+        Pragma: t.keyword,
+        Type: t.keyword,
       })
     ]
   }),

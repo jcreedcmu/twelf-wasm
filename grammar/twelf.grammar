@@ -1,10 +1,23 @@
-@top File { (Identifier | Number | String)+ }
+@top File { ( Colon | Period | FVar | Identifier | Pragma | Arrow | Type)* }
 
-@skip { space }
+
+@skip { space | LineComment }
 
 @tokens {
-  space { @whitespace+ }
-  Identifier { $[A-Za-z_]+ }
-  Number { $[0-9]+ }
-  String { '"' !["]* '"' }
+  space { $[ \n\r\t]+ }
+  Colon{':'} Period{'.'}
+  identifierChar { $[-\!|#$&'*-,/-9;-Z^-z~\u{a1}-\u{10ffff}] }
+  Identifier { identifierChar+ }
+  FVar { $[A-Z] identifierChar+ }
+  @precedence {FVar, Identifier}
+  LineComment { (('% '|'%%') ![\n]*) | '%\n' }
+  Pragma { '%' $[a-zA-Z]+ }
+}
+
+Arrow {
+  @specialize<Identifier, "->">
+}
+
+Type {
+  @specialize<Identifier, "type">
 }
