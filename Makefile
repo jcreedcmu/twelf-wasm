@@ -13,3 +13,7 @@ serve:
 
 parser:
 	npm run build-parser
+
+# deploy to github pages
+deploy:
+	git push origin "main:deploy"
