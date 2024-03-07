@@ -1,8 +1,9 @@
-import { EditorView, basicSetup } from "codemirror"
 import { syntaxHighlighting } from '@codemirror/language';
+import { Diagnostic, lintGutter, setDiagnostics } from '@codemirror/lint';
+import { EditorView, basicSetup } from "codemirror";
 import { decode, encode } from "./encoding";
-import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 import { twelfHighlightStyle, twelf as twelfMode } from './twelf-mode';
+import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 
 enum Status {
   OK = 0,
@@ -152,6 +153,7 @@ function initEditor(): EditorView {
     extensions: [basicSetup,
       syntaxHighlighting(twelfHighlightStyle),
       twelfMode(),
+      lintGutter(),
       // These css tweaks came from the "See this example" in
       // https://discuss.codemirror.net/t/fill-a-div-with-the-editor/5248/2
       // I'm not convinced the overflow auto is actually required, but
@@ -166,38 +168,34 @@ function initEditor(): EditorView {
   return editor;
 }
 
-
-function clearAnnotations(editor: EditorView) {
-  // editor.getSession().clearAnnotations();
-  // const markers = editor.getSession().getMarkers();
-  // for (const m of Object.values(markers)) {
-  //   editor.session.removeMarker(m.id);
-  // }
-}
-
 async function initTwelf(editor: EditorView) {
 
   function dispatch(action: TwelfAction): void {
     switch (action.t) {
       case 'setErrors': {
 
-        // const annotations: Ace.Annotation[] = [];
+        const diagnostics: Diagnostic[] = [];
         // let seen: Record<number, boolean> = {};
 
-        // action.errors.forEach(error => {
-        //   if (!seen[error.range.line1]) {
-        //     annotations.push({
-        //       row: error.range.line1 - 1,
-        //       column: error.range.col1 - 1,
-        //       text: error.text,
-        //       type: "error"
-        //     }
-        //     );
-        //     seen[error.range.line1] = true;
-        //   }
-        // });
+        action.errors.forEach(error => {
 
-        // editor.getSession().setAnnotations(annotations);
+          if (error.text.match(/\d+ errors? found/))
+            return;
+          const from = editor.state.doc.line(error.range.line1).from + error.range.col1 - 1;
+          const to = editor.state.doc.line(error.range.line2).from + error.range.col2 - 1;
+
+          diagnostics.push({
+            from,
+            to,
+            message: error.text,
+            severity: "error",
+          }
+          );
+
+
+        });
+
+        editor.dispatch(setDiagnostics(editor.state, diagnostics));
 
         break;
       }
@@ -208,7 +206,6 @@ async function initTwelf(editor: EditorView) {
   const twelfService = await mkTwelfService('assets/twelf.wasm', dispatch);
 
   const exec = () => {
-    clearAnnotations(editor);
     twelfService.exec(getText());
   };
 
@@ -245,7 +242,8 @@ async function initTwelf(editor: EditorView) {
 
   function setText(text: string): void {
     editor.dispatch({
-      changes: { from: 0, to: editor.state.doc.length, insert: text }
+      changes: { from: 0, to: editor.state.doc.length, insert: text },
+      effects: [],
     });
   }
 
