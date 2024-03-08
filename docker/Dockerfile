@@ -74,3 +74,15 @@ RUN cd mlton && make clean && \
 		  WITH_GMP_DIR=$BUILD/gmp-wasi-INSTALL \
 		  PREFIX=$BUILD/mlton-INSTALL \
 		  dirs runtime install-runtime
+
+# patch the lack of existence of svnversion
+RUN echo '#!/bin/bash\ngit rev-parse HEAD' > /usr/bin/svnversion && \
+    chmod +x /usr/bin/svnversion
+
+# build twelf
+RUN git clone https://github.com/standardml/twelf && \
+    cd twelf && \
+    make mlton="$BUILD/mlton-INSTALL/bin/mlton \
+        -default-ann 'nonexhaustiveMatch ignore' \
+        -default-ann 'nonexhaustiveBind ignore'" \
+        wasi
