@@ -171,6 +171,12 @@ function initEditor(): EditorView {
 async function initTwelf(editor: EditorView) {
 
   function dispatch(action: TwelfAction): void {
+    function posOfLineCol(line: number, col: number): number {
+      const rv = Math.min(editor.state.doc.length,
+        editor.state.doc.line(line).from + col - 1);
+      return rv;
+    }
+
     switch (action.t) {
       case 'setErrors': {
 
@@ -181,8 +187,8 @@ async function initTwelf(editor: EditorView) {
 
           if (error.text.match(/\d+ errors? found/))
             return;
-          const from = editor.state.doc.line(error.range.line1).from + error.range.col1 - 1;
-          const to = editor.state.doc.line(error.range.line2).from + error.range.col2 - 1;
+          const from = posOfLineCol(error.range.line1, error.range.col1);
+          const to = posOfLineCol(error.range.line2, error.range.col2);
 
           diagnostics.push({
             from,
