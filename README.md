@@ -14,3 +14,34 @@ Demo
 ====
 
 [Go here to interact with the twelf server](https://jcreedcmu.github.io/twelf-wasm).
+
+Building for Local Development
+==============================
+
+From a fresh checkout, you can do
+```shell
+npm install
+make build
+make serve
+```
+to serve on port 8000
+
+Alternatively the default build target
+```
+make
+```
+runs a watch process, continually rebuilding javascript from typescript source.
+
+Other make targets
+------------------
+```shell
+make parser
+```
+rebuilds the syntax-highlighting parser from its [lezer](https://lezer.codemirror.net/) source.
+This artefact is checked into the repository since it changes rarely, and you do not need to rebuilt it.
+
+```shell
+make wasm
+```
+rebuilds the `twelf.wasm` asset in docker. This artefact is also checked into the repository,
+and it similarly does not need to be built from a fresh checkout.
