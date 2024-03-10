@@ -24,7 +24,7 @@ npm install
 make build
 make serve
 ```
-to serve on port 8000
+to serve locally on port 8000.
 
 Alternatively the default build target
 ```
