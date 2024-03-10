@@ -38,7 +38,7 @@ Other make targets
 make parser
 ```
 rebuilds the syntax-highlighting parser from its [lezer](https://lezer.codemirror.net/) source.
-This artefact is checked into the repository since it changes rarely, and you do not need to rebuilt it.
+This artefact is checked into the repository since it changes rarely, and you do not need to rebuild it.
 
 ```shell
 make wasm
