@@ -1,4 +1,4 @@
-import { Status } from "./twelf-worker-types";
+import { Status, TwelfError, TwelfWorkerResponse } from "./twelf-worker-types";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 
 type TwelfExports = {
@@ -12,21 +12,11 @@ function debug(_x: string): void {
   // console.log(x);
 }
 
-type TwelfError = {
-  range: { line1: number, col1: number, line2: number, col2: number },
-  text: string,
-}
-
-export type TwelfAction =
-  | { t: 'setErrors', errors: TwelfError[] };
-
-type TwelfDispatch = (action: TwelfAction) => void;
-
 async function getWasm(url: string): Promise<ArrayBuffer> {
   return (await fetch(url)).arrayBuffer();
 }
 
-export async function mkTwelfService(wasmLoc: string, dispatch: TwelfDispatch): Promise<TwelfService> {
+export async function mkTwelfService(wasmLoc: string): Promise<TwelfService> {
   const twelfWasm = getWasm(wasmLoc);
 
   let mem: WebAssembly.Memory | undefined;
@@ -63,14 +53,14 @@ export async function mkTwelfService(wasmLoc: string, dispatch: TwelfDispatch): 
   mem = exports.memory;
   exports.twelf_open(0, 0);
 
-  return new TwelfService(source.instance, dispatch, output);
+  return new TwelfService(source.instance, output);
 }
 
 class TwelfService {
 
-  constructor(public instance: WebAssembly.Instance, public dispatch: TwelfDispatch, public output: string[]) { }
+  constructor(public instance: WebAssembly.Instance, public output: string[]) { }
 
-  async exec(input: string): Promise<Status> {
+  async exec(input: string): Promise<TwelfWorkerResponse> {
     this.output.splice(0); // Erase output
 
     const exports = this.instance.exports as TwelfExports;
@@ -95,11 +85,10 @@ class TwelfService {
       }
     })();
 
-    const outputText = this.output.join('');
     const errorRegex = new RegExp('string:(\\d+?).(\\d+?)-(\\d+?).(\\d+?) Error: \n(.*)', 'g');
     let m;
     const errors: TwelfError[] = [];
-    while (m = errorRegex.exec(outputText)) {
+    while (m = errorRegex.exec(this.output.join(''))) {
       errors.push({
         range: {
           line1: parseInt(m[1]),
@@ -110,9 +99,6 @@ class TwelfService {
         text: m[5],
       });
     }
-    this.dispatch({ t: 'setErrors', errors });
-    (document.getElementById('twelf-response') as HTMLTextAreaElement).value = outputText;
-
-    return status;
+    return { status, output: [...this.output], errors: errors };
   }
 }

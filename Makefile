@@ -8,6 +8,10 @@ build:
 	test -e node_modules || npm i
 	node build.js
 
+# run typechecker
+check:
+	npx tsc --watch
+
 serve:
 	cd public && python3 -m http.server
 

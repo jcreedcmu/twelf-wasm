@@ -3,9 +3,9 @@ import { Diagnostic, lintGutter, setDiagnostics } from '@codemirror/lint';
 import { EditorView, basicSetup } from "codemirror";
 import { decode, encode } from "./encoding";
 import { twelfHighlightStyle, twelf as twelfMode } from './twelf-mode';
-import { TwelfAction, mkTwelfService } from './twelf-service';
-import { Status } from './twelf-worker-types';
+import { Status, TwelfError } from './twelf-worker-types';
 import { mkTwelfWorker } from './twelf-worker';
+import { mkTwelfService } from './twelf-service';
 
 function showStatus(status: Status) {
   const serverStatus = (document.getElementById('server-status') as HTMLDivElement);
@@ -50,49 +50,47 @@ function initEditor(): EditorView {
 
 async function initTwelf(editor: EditorView) {
 
-  function dispatch(action: TwelfAction): void {
+  function showErrors(errors: TwelfError[]): void {
     function posOfLineCol(line: number, col: number): number {
       const rv = Math.min(editor.state.doc.length,
         editor.state.doc.line(line).from + col - 1);
       return rv;
     }
 
-    switch (action.t) {
-      case 'setErrors': {
 
-        const diagnostics: Diagnostic[] = [];
-        // let seen: Record<number, boolean> = {};
+    const diagnostics: Diagnostic[] = [];
+    // let seen: Record<number, boolean> = {};
 
-        action.errors.forEach(error => {
+    errors.forEach(error => {
 
-          if (error.text.match(/\d+ errors? found/))
-            return;
-          const from = posOfLineCol(error.range.line1, error.range.col1);
-          const to = posOfLineCol(error.range.line2, error.range.col2);
+      if (error.text.match(/\d+ errors? found/))
+        return;
+      const from = posOfLineCol(error.range.line1, error.range.col1);
+      const to = posOfLineCol(error.range.line2, error.range.col2);
 
-          diagnostics.push({
-            from,
-            to,
-            message: error.text,
-            severity: "error",
-          }
-          );
-
-
-        });
-
-        editor.dispatch(setDiagnostics(editor.state, diagnostics));
-
-        break;
+      diagnostics.push({
+        from,
+        to,
+        message: error.text,
+        severity: "error",
       }
-    }
+      );
+
+
+    });
+
+    editor.dispatch(setDiagnostics(editor.state, diagnostics));
+
   }
 
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
-  const twelfService = await mkTwelfService('assets/twelf.wasm', dispatch);
+  const twelfService = await mkTwelfService('assets/twelf.wasm');
 
   async function execAndShowStatus(text: string): Promise<void> {
-    showStatus(await twelfService.exec(text));
+    const result = await twelfService.exec(text);
+    showStatus(result.status);
+    showErrors(result.errors);
+    (document.getElementById('twelf-response') as HTMLTextAreaElement).value = result.output.join('');
   }
 
   const execCurrentBuffer = () => {

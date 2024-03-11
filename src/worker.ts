@@ -8,5 +8,5 @@ self.onmessage = (event) => {
 };
 
 function processRequest(req: TwelfWorkerRequest): TwelfWorkerResponse {
-  return { status: Status.OK, output: [req.input] };
+  return { status: Status.OK, output: [req.input], errors: [] };
 }
