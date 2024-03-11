@@ -5,7 +5,6 @@ import { decode, encode } from "./encoding";
 import { twelfHighlightStyle, twelf as twelfMode } from './twelf-mode';
 import { Status, TwelfError } from './twelf-worker-types';
 import { mkTwelfWorker } from './twelf-worker';
-import { mkTwelfService } from './twelf-service';
 
 function showStatus(status: Status) {
   const serverStatus = (document.getElementById('server-status') as HTMLDivElement);
@@ -84,7 +83,7 @@ async function initTwelf(editor: EditorView) {
   }
 
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
-  const twelfService = await mkTwelfService('assets/twelf.wasm');
+  const twelfService = await mkTwelfWorker();
 
   async function execAndShowStatus(text: string): Promise<void> {
     const result = await twelfService.exec(text);
@@ -162,12 +161,3 @@ async function initTwelf(editor: EditorView) {
 }
 
 initTwelf(initEditor());
-
-async function go() {
-  const worker = mkTwelfWorker();
-  const z = await worker.exec('hello world message');
-  console.log('resp', z);
-}
-
-
-go();

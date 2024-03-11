@@ -56,7 +56,7 @@ export async function mkTwelfService(wasmLoc: string): Promise<TwelfService> {
   return new TwelfService(source.instance, output);
 }
 
-class TwelfService {
+export class TwelfService {
 
   constructor(public instance: WebAssembly.Instance, public output: string[]) { }
 
