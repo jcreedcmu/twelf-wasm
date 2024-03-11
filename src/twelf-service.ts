@@ -1,9 +1,5 @@
+import { Status } from "./twelf-worker-types";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
-
-export enum Status {
-  OK = 0,
-  ABORT = 1,
-}
 
 type TwelfExports = {
   memory: WebAssembly.Memory;

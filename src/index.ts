@@ -3,7 +3,9 @@ import { Diagnostic, lintGutter, setDiagnostics } from '@codemirror/lint';
 import { EditorView, basicSetup } from "codemirror";
 import { decode, encode } from "./encoding";
 import { twelfHighlightStyle, twelf as twelfMode } from './twelf-mode';
-import { Status, TwelfAction, mkTwelfService } from './twelf-service';
+import { TwelfAction, mkTwelfService } from './twelf-service';
+import { Status } from './twelf-worker-types';
+import { mkTwelfWorker } from './twelf-worker';
 
 function showStatus(status: Status) {
   const serverStatus = (document.getElementById('server-status') as HTMLDivElement);
@@ -162,3 +164,12 @@ async function initTwelf(editor: EditorView) {
 }
 
 initTwelf(initEditor());
+
+async function go() {
+  const worker = mkTwelfWorker();
+  const z = await worker.exec('hello world message');
+  console.log('resp', z);
+}
+
+
+go();
