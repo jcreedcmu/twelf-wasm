@@ -4,7 +4,7 @@ import { EditorView, basicSetup } from "codemirror";
 import { decode, encode } from "./encoding";
 import { twelfHighlightStyle, twelf as twelfMode } from './twelf-mode';
 import { Status, TwelfError } from './twelf-worker-types';
-import { mkTwelfWorker } from './twelf-worker';
+import { TwelfWorker, mkTwelfWorker } from './twelf-worker';
 
 function showStatus(status: Status) {
   const serverStatus = (document.getElementById('server-status') as HTMLDivElement);
@@ -82,11 +82,21 @@ async function initTwelf(editor: EditorView) {
 
   }
 
+  const workerRef: { worker: TwelfWorker | undefined } = { worker: undefined };
+  async function timeoutCallback(): Promise<void> {
+    workerRef.worker = undefined;
+    alert('twelf timed out, trying to restart twelf worker...');
+    workerRef.worker = await mkTwelfWorker(timeoutCallback);
+  }
+
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
-  const worker = await mkTwelfWorker();
+  workerRef.worker = await mkTwelfWorker(timeoutCallback);
 
   async function execAndShowStatus(text: string): Promise<void> {
-    const result = await worker.exec(text);
+    if (workerRef.worker == undefined) {
+      throw new Error(`twelf worker not ready yet`);
+    }
+    const result = await (workerRef.worker).exec(text);
     showStatus(result.status);
     showErrors(result.errors);
     (document.getElementById('twelf-response') as HTMLTextAreaElement).value = result.output.join('');

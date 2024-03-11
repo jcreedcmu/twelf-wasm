@@ -1,18 +1,18 @@
 import { TwelfExecRequest, TwelfExecResponse, TwelfResponse, WithId } from "./twelf-worker-types";
 
-export async function mkTwelfWorker(): Promise<TwelfWorker> {
-  const worker = new TwelfWorker();
+export async function mkTwelfWorker(timeoutCallback: () => void): Promise<TwelfWorker> {
+  const worker = new TwelfWorker(timeoutCallback);
   await worker.isReady();
   return worker;
 }
 
-class TwelfWorker {
+export class TwelfWorker {
   requestIdCounter: number = 0;
   responseMap: Record<number, (result: TwelfResponse) => void>;
   worker: Worker;
   _readyPromise: Promise<void>;
 
-  constructor() {
+  constructor(public timeoutCallback: () => void) {
     this.worker = new Worker('./assets/worker.js');
     this.worker.onmessage = (msg) => {
       const data: TwelfResponse = msg.data;
@@ -40,7 +40,13 @@ class TwelfWorker {
       this.responseMap[req.id] = res;
     });
     this.worker.postMessage(req);
+
+    const t = setTimeout(() => {
+      this.worker.terminate();
+      (this.timeoutCallback)();
+    }, 2000);
     const p = await prom;
+    clearTimeout(t);
     if (p.t != 'execResponse') {
       throw new Error(`expected execReponse but got ${p.t}`);
     }
