@@ -83,10 +83,10 @@ async function initTwelf(editor: EditorView) {
   }
 
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
-  const twelfService = await mkTwelfWorker();
+  const worker = await mkTwelfWorker();
 
   async function execAndShowStatus(text: string): Promise<void> {
-    const result = await twelfService.exec(text);
+    const result = await worker.exec(text);
     showStatus(result.status);
     showErrors(result.errors);
     (document.getElementById('twelf-response') as HTMLTextAreaElement).value = result.output.join('');

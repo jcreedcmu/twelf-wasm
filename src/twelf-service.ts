@@ -1,4 +1,4 @@
-import { Status, TwelfError, TwelfWorkerResponse } from "./twelf-worker-types";
+import { Status, TwelfError, TwelfExecResponse } from "./twelf-worker-types";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 
 type TwelfExports = {
@@ -60,7 +60,7 @@ export class TwelfService {
 
   constructor(public instance: WebAssembly.Instance, public output: string[]) { }
 
-  async exec(input: string): Promise<TwelfWorkerResponse> {
+  async exec(input: string): Promise<TwelfExecResponse> {
     this.output.splice(0); // Erase output
 
     const exports = this.instance.exports as TwelfExports;

@@ -10,12 +10,19 @@ export type TwelfError = {
 
 export type WithId<T> = { id: number, body: T };
 
-export type TwelfWorkerRequest = {
+export type TwelfExecRequest = {
   input: string,
 }
 
-export type TwelfWorkerResponse = {
+export type TwelfExecResponse = {
   status: Status,
   output: string[],
   errors: TwelfError[],
 }
+
+export type TwelfReadyResponse = {};
+
+export type TwelfResponse =
+  | { t: 'ready', id: number, response: TwelfReadyResponse }
+  | { t: 'execResponse', id: number, response: TwelfExecResponse }
+  ;
