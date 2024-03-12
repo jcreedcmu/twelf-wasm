@@ -2,7 +2,7 @@ import { syntaxHighlighting } from '@codemirror/language';
 import { Diagnostic, lintGutter, setDiagnostics } from '@codemirror/lint';
 import { EditorView, basicSetup } from "codemirror";
 import { decode, encode } from "./encoding";
-import { twelfHighlightStyle, twelf as twelfMode } from './twelf-mode';
+import { twelfHighlightStyle, twelfLanguage } from './twelf-mode';
 import { Status, TwelfError } from './twelf-worker-types';
 import { TwelfWorker, mkTwelfWorker } from './twelf-worker';
 
@@ -31,7 +31,7 @@ function initEditor(): EditorView {
   const editor = new EditorView({
     extensions: [basicSetup,
       syntaxHighlighting(twelfHighlightStyle),
-      twelfMode(),
+      twelfLanguage,
       lintGutter(),
       // These css tweaks came from the "See this example" in
       // https://discuss.codemirror.net/t/fill-a-div-with-the-editor/5248/2

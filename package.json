@@ -4,20 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build-parser": "lezer-generator grammar/twelf.grammar -o src/twelf-parser.ts"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@lezer/lr": "^1.4.0",
     "@types/codemirror": "^5.60.15",
     "codemirror": "^6.0.1",
     "esbuild": "^0.20.1"
   },
   "devDependencies": {
-    "@lezer/generator": "^1.6.0",
+    "@codemirror/language": "^6.10.1",
+    "@lezer/highlight": "^1.2.0",
     "typescript": "^5.3.3"
   }
 }
