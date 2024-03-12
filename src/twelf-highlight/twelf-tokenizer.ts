@@ -1,6 +1,6 @@
 import type { ParserResponse, StreamParser } from "./tokenizer-types";
 
-const IDCHARS = /^[_!&$^+/<=>?@~|#*`;,\-\\a-zA-Z0-9'\u{80}-\u{10FFFF}]+/u;
+const IDCHARS = /^[_!&$^+\/<=>?@~|#*`;,\-\\a-zA-Z0-9'\u{80}-\u{10FFFF}]+/u;
 
 type State =
   | { type: "Toplevel" }
