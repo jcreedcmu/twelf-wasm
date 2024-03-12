@@ -1,7 +1,7 @@
 import { defaultHighlightStyle, HighlightStyle, StreamLanguage } from "@codemirror/language";
-import { tags as t } from "@lezer/highlight";
 import { mkStreamParser } from "./twelf-highlight/tokenizer-codemirror-adapter";
 import { twelfTokenizer } from "./twelf-highlight/twelf-tokenizer";
+import { tags as t } from "@lezer/highlight";
 
 export const twelfHighlightStyle = HighlightStyle.define([
   ...defaultHighlightStyle.specs,
