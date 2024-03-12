@@ -1,43 +1,37 @@
-import { syntaxHighlighting } from "@codemirror/language";
-import { Diagnostic, lintGutter, setDiagnostics } from "@codemirror/lint";
+import { syntaxHighlighting } from '@codemirror/language';
+import { Diagnostic, lintGutter, setDiagnostics } from '@codemirror/lint';
 import { EditorView, basicSetup } from "codemirror";
 import { decode, encode } from "./encoding";
-import { twelfHighlightStyle, twelfLanguage } from "./twelf-mode";
-import { Status, TwelfError } from "./twelf-worker-types";
-import { TwelfWorker, mkTwelfWorker } from "./twelf-worker";
+import { twelfHighlightStyle, twelfLanguage } from './twelf-mode';
+import { Status, TwelfError } from './twelf-worker-types';
+import { TwelfWorker, mkTwelfWorker } from './twelf-worker';
 
 function showStatus(status: Status) {
-  const serverStatus = document.getElementById(
-    "server-status"
-  ) as HTMLDivElement;
+  const serverStatus = (document.getElementById('server-status') as HTMLDivElement);
 
   switch (status) {
-    case Status.OK:
-      {
-        serverStatus.className = "server-status server-status-ok";
-        serverStatus.innerText = "Server OK";
+    case Status.OK: {
+      serverStatus.className = 'server-status server-status-ok';
+      serverStatus.innerText = 'Server OK';
 
-        setTimeout(() => {
-          serverStatus.classList.add("server-status-flash");
-        }, 10);
-      }
+      setTimeout(() => {
+        serverStatus.classList.add('server-status-flash');
+      }, 10);
+    }
       break;
-    case Status.ABORT:
-      {
-        serverStatus.className = "server-status server-status-abort";
-        serverStatus.innerText = "Server ABORT";
-      }
-      break;
+    case Status.ABORT: {
+      serverStatus.className = 'server-status server-status-abort';
+      serverStatus.innerText = 'Server ABORT';
+    } break;
   }
 }
 
 // Initialize editor component
 function initEditor(): EditorView {
   const editor = new EditorView({
-    extensions: [
-      basicSetup,
-      twelfLanguage,
+    extensions: [basicSetup,
       syntaxHighlighting(twelfHighlightStyle),
+      twelfLanguage,
       lintGutter(),
       // These css tweaks came from the "See this example" in
       // https://discuss.codemirror.net/t/fill-a-div-with-the-editor/5248/2
@@ -45,30 +39,31 @@ function initEditor(): EditorView {
       // leaving it in anyway
       EditorView.theme({
         "&.cm-editor": { height: "100%" },
-        ".cm-scroller": { overflow: "auto" },
-      }),
-    ],
-    parent: document.getElementById("primary-view") as HTMLDivElement,
+        ".cm-scroller": { overflow: "auto" }
+      })],
+    parent: document.getElementById('primary-view') as HTMLDivElement,
   });
   (window as any).editor = editor;
   return editor;
 }
 
 async function initTwelf(editor: EditorView) {
+
   function showErrors(errors: TwelfError[]): void {
     function posOfLineCol(line: number, col: number): number {
-      const rv = Math.min(
-        editor.state.doc.length,
-        editor.state.doc.line(line).from + col - 1
-      );
+      const rv = Math.min(editor.state.doc.length,
+        editor.state.doc.line(line).from + col - 1);
       return rv;
     }
+
 
     const diagnostics: Diagnostic[] = [];
     // let seen: Record<number, boolean> = {};
 
-    errors.forEach((error) => {
-      if (error.text.match(/\d+ errors? found/)) return;
+    errors.forEach(error => {
+
+      if (error.text.match(/\d+ errors? found/))
+        return;
       const from = posOfLineCol(error.range.line1, error.range.col1);
       const to = posOfLineCol(error.range.line2, error.range.col2);
 
@@ -77,31 +72,34 @@ async function initTwelf(editor: EditorView) {
         to,
         message: error.text,
         severity: "error",
-      });
+      }
+      );
+
+
     });
 
     editor.dispatch(setDiagnostics(editor.state, diagnostics));
+
   }
 
   const workerRef: { worker: TwelfWorker | undefined } = { worker: undefined };
   async function timeoutCallback(): Promise<void> {
     workerRef.worker = undefined;
-    alert("twelf timed out, trying to restart twelf worker...");
+    alert('twelf timed out, trying to restart twelf worker...');
     workerRef.worker = await mkTwelfWorker(timeoutCallback);
   }
 
-  (document.getElementById("twelf-response") as HTMLTextAreaElement).value = "";
+  (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
   workerRef.worker = await mkTwelfWorker(timeoutCallback);
 
   async function execAndShowStatus(text: string): Promise<void> {
     if (workerRef.worker == undefined) {
       throw new Error(`twelf worker not ready yet`);
     }
-    const result = await workerRef.worker.exec(text);
+    const result = await (workerRef.worker).exec(text);
     showStatus(result.status);
     showErrors(result.errors);
-    (document.getElementById("twelf-response") as HTMLTextAreaElement).value =
-      result.output.join("");
+    (document.getElementById('twelf-response') as HTMLTextAreaElement).value = result.output.join('');
   }
 
   const execCurrentBuffer = () => {
@@ -109,7 +107,7 @@ async function initTwelf(editor: EditorView) {
   };
 
   const saveAndExec = async () => {
-    localStorage.setItem("savedElf", getText());
+    localStorage.setItem('savedElf', getText());
     const url = await setUrlFragmentToSharableLink();
     execCurrentBuffer();
   };
@@ -117,8 +115,9 @@ async function initTwelf(editor: EditorView) {
   if (window.location.hash) {
     setText(await decode(window.location.hash.substring(1)));
     execCurrentBuffer();
-  } else {
-    const savedElf = localStorage.getItem("savedElf");
+  }
+  else {
+    const savedElf = localStorage.getItem('savedElf');
     if (savedElf != undefined) {
       setText(savedElf);
       execCurrentBuffer();
@@ -126,12 +125,11 @@ async function initTwelf(editor: EditorView) {
   }
 
   // Hide loading indicator
-  document.getElementById("loading-indicator")!.classList.add("hidden");
+  document.getElementById('loading-indicator')!.classList.add('hidden');
 
   async function setUrlFragmentToSharableLink(): Promise<string> {
-    const url =
-      window.location.href.split("#")[0] + "#" + (await encode(getText()));
-    history.replaceState(null, "unused", url);
+    const url = window.location.href.split('#')[0] + '#' + await encode(getText());
+    history.replaceState(null, 'unused', url);
     return url;
   }
 
@@ -146,41 +144,29 @@ async function initTwelf(editor: EditorView) {
     });
   }
 
-  const checkButton = document.getElementById(
-    "check-button"
-  ) as HTMLButtonElement;
+  const checkButton = document.getElementById('check-button') as HTMLButtonElement;
   checkButton.onclick = saveAndExec;
 
-  const shareButton = document.getElementById(
-    "share-button"
-  ) as HTMLButtonElement;
+  const shareButton = document.getElementById('share-button') as HTMLButtonElement;
   shareButton.onclick = async () => {
     const url = await setUrlFragmentToSharableLink();
     await navigator.clipboard.writeText(url);
-    const indicator = document.getElementById(
-      "copy-indicator"
-    ) as HTMLDivElement;
-    indicator.className = "copy-notification-enabled";
-    setTimeout(() => {
-      indicator.className = "copy-notification-disabled";
-    }, 2000);
+    const indicator = (document.getElementById('copy-indicator') as HTMLDivElement);
+    indicator.className = 'copy-notification-enabled';
+    setTimeout(() => { indicator.className = 'copy-notification-disabled'; }, 2000);
   };
-  editor.contentDOM.addEventListener(
-    "keydown",
-    (e) => {
-      if (e.ctrlKey && e.key == "Enter") {
-        saveAndExec(); // async
-        e.stopPropagation();
-        e.preventDefault();
-      }
-    },
-    {
-      // So that we can intercept the <C-enter> during capture phase,
-      // before codemirror sees it and decides to insert an actual
-      // newline.
-      capture: true,
+  editor.contentDOM.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key == 'Enter') {
+      saveAndExec(); // async
+      e.stopPropagation();
+      e.preventDefault();
     }
-  );
+  }, {
+    // So that we can intercept the <C-enter> during capture phase,
+    // before codemirror sees it and decides to insert an actual
+    // newline.
+    capture: true
+  });
   editor.focus();
 }
 
