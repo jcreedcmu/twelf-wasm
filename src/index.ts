@@ -92,20 +92,20 @@ async function initTwelf(editor: EditorView) {
   }
 
   const workerRef: { worker: TwelfWorker | undefined } = { worker: undefined };
-  async function timeoutCallback(): Promise<void> {
-    workerRef.worker = undefined;
-    alert('twelf timed out, trying to restart twelf worker...');
-    workerRef.worker = await mkTwelfWorker(timeoutCallback);
-  }
-
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
-  workerRef.worker = await mkTwelfWorker(timeoutCallback);
+  workerRef.worker = await mkTwelfWorker();
 
   async function execAndShowStatus(text: string): Promise<void> {
     if (workerRef.worker == undefined) {
       throw new Error(`twelf worker not ready yet`);
     }
     const result = await (workerRef.worker).exec(text);
+
+    if (result.status.t == 'timeout') {
+      workerRef.worker = undefined;
+      console.log('twelf timed out, trying to restart twelf worker...');
+      workerRef.worker = await mkTwelfWorker();
+    }
     showStatus(result.status);
     showErrors(result.errors);
     (document.getElementById('twelf-response') as HTMLTextAreaElement).value = result.output.join('');

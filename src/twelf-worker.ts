@@ -1,7 +1,7 @@
 import { TwelfExecRequest, TwelfExecResponse, TwelfResponse, WithId } from "./twelf-worker-types";
 
-export async function mkTwelfWorker(timeoutCallback: () => void): Promise<TwelfWorker> {
-  const worker = new TwelfWorker(timeoutCallback);
+export async function mkTwelfWorker(): Promise<TwelfWorker> {
+  const worker = new TwelfWorker();
   await worker.isReady();
   return worker;
 }
@@ -12,7 +12,7 @@ export class TwelfWorker {
   worker: Worker;
   _readyPromise: Promise<void>;
 
-  constructor(public timeoutCallback: () => void) {
+  constructor() {
     this.worker = new Worker('./assets/worker.js');
     this.worker.onmessage = (msg) => {
       const data: TwelfResponse = msg.data;
@@ -41,16 +41,31 @@ export class TwelfWorker {
     });
     this.worker.postMessage(req);
 
-    const t = setTimeout(() => {
-      this.worker.terminate();
-      (this.timeoutCallback)();
-    }, 2000);
-    const p = await prom;
-    clearTimeout(t);
-    if (p.t != 'execResponse') {
-      throw new Error(`expected execReponse but got ${p.t}`);
-    }
-    return p.response;
+    return new Promise<TwelfExecResponse>((res, rej) => {
+      console.log('setting timer');
+      const t = setTimeout(() => {
+        console.log('timer reached');
+        this.worker.terminate();
+        res({
+          status: { t: 'timeout' },
+          // XXX we're missing output and errors
+          output: [],
+          errors: [],
+        });
+      }, 2000);
+
+      const makeRequest = async () => {
+        const p = await prom;
+        if (p.t != 'execResponse') {
+          throw new Error(`expected execReponse but got ${p.t}`);
+        }
+        console.log('clearing timer');
+        clearTimeout(t);
+        res(p.response);
+      };
+
+      makeRequest();
+    });
   }
 
   isReady(): Promise<void> {
