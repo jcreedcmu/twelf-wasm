@@ -34,7 +34,13 @@ RUN wget https://github.com/MLton/mlton/releases/download/on-20210117-release/ml
     tar xvzf mlton-20210117-1.amd64-linux-glibc2.31.tgz && \
     cd $BUILD/mlton-20210117-1.amd64-linux-glibc2.31 && make install
 
-# get agoode/mlton fork at branch wasm2, which at time of writing was commit hash d2b9e5d3ea
+# get agoode/mlton fork at branch wasm2
+# this use of ADD I learned from
+# https://stackoverflow.com/questions/36996046/how-to-prevent-dockerfile-caching-git-clone
+# It is supposed to have the effect of re-cloning this repository
+# (i.e. invalidating the docker cache at this layer) if and only if
+# the branch actually changes.
+ADD https://api.github.com/repos/agoode/mlton/git/refs/heads/wasm2 version.json
 RUN git clone -b wasm2 https://github.com/agoode/mlton mlton
 
 # build mlton binary
@@ -44,7 +50,7 @@ RUN cd mlton && \
     make PREFIX=$MLTON install
 
 # build wasm runtime
-RUN cd mlton && make clean && \
+RUN cd mlton && git clean -dfx && \
     make \
 		  CC=$WASISDK/bin/clang \
 		  AR=$WASISDK/bin/ar \
