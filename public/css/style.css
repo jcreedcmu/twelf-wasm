@@ -193,6 +193,7 @@ label {
   position: relative;
   visibility: hidden;
   overflow: hidden;
+  user-select: none;
 }
 
 .server-status::after {
