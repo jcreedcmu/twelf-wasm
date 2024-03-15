@@ -40,7 +40,7 @@ RUN wget https://github.com/MLton/mlton/releases/download/on-20210117-release/ml
 # It is supposed to have the effect of re-cloning this repository
 # (i.e. invalidating the docker cache at this layer) if and only if
 # the branch actually changes.
-ADD https://api.github.com/repos/agoode/mlton/git/refs/heads/wasm2 version.json
+ADD https://api.github.com/repos/agoode/mlton/git/refs/heads/wasm2 mlton-version.json
 RUN git clone -b wasm2 https://github.com/agoode/mlton mlton
 
 # build mlton binary
@@ -67,6 +67,7 @@ RUN echo '#!/bin/bash\ngit rev-parse HEAD' > /usr/bin/svnversion && \
     chmod +x /usr/bin/svnversion
 
 # build twelf binary in $BUILD/twelf/bin/twelf.wasm
+ADD https://api.github.com/repos/standardml/twelf/git/refs/heads/main twelf-version.json
 RUN git clone https://github.com/standardml/twelf && \
     cd twelf && \
     make mlton="$BUILD/mlton-INSTALL/bin/mlton \
