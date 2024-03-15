@@ -30,6 +30,9 @@ function showStatus(status: TwelfExecStatus) {
     case 'timeout': {
       serverStatus.className = 'server-status server-status-timeout';
       serverStatus.innerText = 'Server TIMEOUT';
+      setTimeout(() => {
+        serverStatus.classList.add('bounce');
+      }, 10);
     }
   }
 }
