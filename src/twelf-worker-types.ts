@@ -29,7 +29,8 @@ export type TwelfExecResponse = {
 
 export type TwelfReadyResponse = {};
 
-export type TwelfResponse =
-  | { t: 'ready', id: number, response: TwelfReadyResponse }
-  | { t: 'execResponse', id: number, response: TwelfExecResponse }
+export type WorkerMessage =
+  | { t: 'ready' }
+  | { t: 'execResponse', id: number, response: TwelfStatus }
+  | { t: 'output', fd: number, str: string }
   ;

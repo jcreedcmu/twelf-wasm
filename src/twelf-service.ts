@@ -1,4 +1,4 @@
-import { TwelfStatus, TwelfError, TwelfExecResponse, TwelfSideEffectData } from "./twelf-worker-types";
+import { TwelfStatus, TwelfError, TwelfExecResponse, TwelfSideEffectData, TwelfExecStatus } from "./twelf-worker-types";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 
 type TwelfExports = {
@@ -16,11 +16,10 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
   return (await fetch(url)).arrayBuffer();
 }
 
-export async function mkTwelfService(wasmLoc: string): Promise<TwelfService> {
+export async function mkTwelfService(wasmLoc: string, outputCallback: (fd: number, str: string) => void): Promise<TwelfService> {
   const twelfWasm = getWasm(wasmLoc);
 
   let mem: WebAssembly.Memory | undefined;
-  const output: string[] = [];
   const argv: string[] = ['twelf'];
   const imports: { wasi_snapshot_preview1: WebAssembly.ModuleImports & WasiSnapshotPreview1 } = {
     wasi_snapshot_preview1: {
@@ -39,7 +38,7 @@ export async function mkTwelfService(wasmLoc: string): Promise<TwelfService> {
       fd_prestat_get: () => { debug('fd_prestat_get'); },
       fd_read: () => { debug('fd_read'); },
       fd_seek: () => { debug('fd_seek'); },
-      fd_write: (...args) => { debug('fd_write'); return fd_write(mem!, output, ...args); },
+      fd_write: (...args) => { debug('fd_write'); return fd_write(mem!, outputCallback, ...args); },
 
       // Paths
       path_filestat_get: () => { debug('path_filestat_get'); },
@@ -53,44 +52,14 @@ export async function mkTwelfService(wasmLoc: string): Promise<TwelfService> {
   mem = exports.memory;
   exports.twelf_open(0, 0);
 
-  return new TwelfService(source.instance, output);
+  return new TwelfService(source.instance);
 }
 
 export class TwelfService {
 
-  constructor(public instance: WebAssembly.Instance, public output: string[]) { }
+  constructor(public instance: WebAssembly.Instance) { }
 
-  timeoutStatus(): TwelfExecResponse {
-    return {
-      status: { t: 'timeout' },
-      ...this.getSideEffectData()
-    }
-  }
-
-  getSideEffectData(): TwelfSideEffectData {
-    const errorRegex = new RegExp('string:(\\d+?).(\\d+?)-(\\d+?).(\\d+?) Error: \n(.*)', 'g');
-    let m;
-    const errors: TwelfError[] = [];
-    while (m = errorRegex.exec(this.output.join(''))) {
-      errors.push({
-        range: {
-          line1: parseInt(m[1]),
-          col1: parseInt(m[2]),
-          line2: parseInt(m[3]),
-          col2: parseInt(m[4]),
-        },
-        text: m[5],
-      });
-    }
-    return {
-      output: [...this.output],
-      errors,
-    }
-  }
-
-  async exec(input: string): Promise<TwelfExecResponse> {
-    this.output.splice(0); // Erase output
-
+  async exec(input: string): Promise<TwelfStatus> {
     const exports = this.instance.exports as TwelfExports;
     const mem = exports.memory;
 
@@ -113,9 +82,6 @@ export class TwelfService {
       }
     })();
 
-    return {
-      status: { t: 'twelfStatus', status },
-      ...this.getSideEffectData(),
-    };
+    return status;
   }
 }

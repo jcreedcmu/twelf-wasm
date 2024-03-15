@@ -59,7 +59,14 @@ function readIOVectors(
   return result;
 }
 
-export function fd_write(mem: WebAssembly.Memory, output: string[], _fd: number, ciovs_ptr: number, ciovs_len: number, retptr0: number): number {
+export function fd_write(
+  mem: WebAssembly.Memory,
+  outputCallback: (fd: number, str: string) => void,
+  fd: number,
+  ciovs_ptr: number,
+  ciovs_len: number,
+  retptr0: number
+): number {
   const view = new DataView(mem.buffer);
   const iovs = readIOVectors(view, ciovs_ptr, ciovs_len);
   const decoder = new TextDecoder();
@@ -71,7 +78,7 @@ export function fd_write(mem: WebAssembly.Memory, output: string[], _fd: number,
     if (iov.byteLength === 0) {
       continue;
     }
-    output.push(decoder.decode(iov));
+    outputCallback(fd, decoder.decode(iov));
     bytesWritten += iov.byteLength;
   }
 

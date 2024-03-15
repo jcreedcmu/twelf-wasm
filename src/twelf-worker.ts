@@ -1,4 +1,4 @@
-import { TwelfExecRequest, TwelfExecResponse, TwelfResponse, WithId } from "./twelf-worker-types";
+import { TwelfExecRequest, TwelfExecResponse, WorkerMessage, WithId, TwelfSideEffectData, TwelfError } from "./twelf-worker-types";
 
 export async function mkTwelfWorker(): Promise<TwelfWorker> {
   const worker = new TwelfWorker();
@@ -8,15 +8,24 @@ export async function mkTwelfWorker(): Promise<TwelfWorker> {
 
 export class TwelfWorker {
   requestIdCounter: number = 0;
-  responseMap: Record<number, (result: TwelfResponse) => void>;
+  responseMap: Record<number, (result: WorkerMessage) => void>;
   worker: Worker;
   _readyPromise: Promise<void>;
+  output: string[] = [];
 
   constructor() {
     this.worker = new Worker('./assets/worker.js');
     this.worker.onmessage = (msg) => {
-      const data: TwelfResponse = msg.data;
-      this.responseMap[data.id](data);
+      const data: WorkerMessage = msg.data;
+      switch (data.t) {
+        case 'ready':
+          this.responseMap[-1](data); break;
+        case 'execResponse':
+          this.responseMap[data.id](data); break;
+        case 'output':
+          this.output.push(data.str);
+          break;
+      }
     }
     this.responseMap = {};
     const readyPromise = new Promise<void>((res, rej) => {
@@ -34,23 +43,42 @@ export class TwelfWorker {
     };
   }
 
+  getSideEffectData(): TwelfSideEffectData {
+    const errorRegex = new RegExp('string:(\\d+?).(\\d+?)-(\\d+?).(\\d+?) Error: \n(.*)', 'g');
+    let m;
+    const errors: TwelfError[] = [];
+    while (m = errorRegex.exec(this.output.join(''))) {
+      errors.push({
+        range: {
+          line1: parseInt(m[1]),
+          col1: parseInt(m[2]),
+          line2: parseInt(m[3]),
+          col2: parseInt(m[4]),
+        },
+        text: m[5],
+      });
+    }
+    return {
+      output: [...this.output],
+      errors,
+    }
+  }
+
   async exec(input: string): Promise<TwelfExecResponse> {
+    this.output.splice(0); // clear output
+
     const req = this.mkRequest(input);
-    const prom = new Promise<TwelfResponse>((res, rej) => {
+    const prom = new Promise<WorkerMessage>((res, rej) => {
       this.responseMap[req.id] = res;
     });
     this.worker.postMessage(req);
 
     return new Promise<TwelfExecResponse>((res, rej) => {
-      console.log('setting timer');
       const t = setTimeout(() => {
-        console.log('timer reached');
         this.worker.terminate();
         res({
           status: { t: 'timeout' },
-          // XXX we're missing output and errors
-          output: [],
-          errors: [],
+          ...this.getSideEffectData(),
         });
       }, 2000);
 
@@ -59,9 +87,11 @@ export class TwelfWorker {
         if (p.t != 'execResponse') {
           throw new Error(`expected execReponse but got ${p.t}`);
         }
-        console.log('clearing timer');
         clearTimeout(t);
-        res(p.response);
+        res({
+          status: { t: 'twelfStatus', status: p.response },
+          ...this.getSideEffectData(),
+        });
       };
 
       makeRequest();
