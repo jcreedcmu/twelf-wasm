@@ -99,7 +99,10 @@ async function initTwelf(editor: EditorView) {
     if (workerRef.worker == undefined) {
       throw new Error(`twelf worker not ready yet`);
     }
+
+    document.getElementById('running-indicator')!.classList.remove('hidden');
     const result = await (workerRef.worker).exec(text);
+    document.getElementById('running-indicator')!.classList.add('hidden');
 
     if (result.status.t == 'timeout') {
       workerRef.worker = undefined;
