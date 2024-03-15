@@ -6,6 +6,7 @@ type TwelfExports = {
   twelf_open(argc: number, argv: number): void;
   allocate(size: number): number;
   execute(): TwelfStatus;
+  unsafe(u: boolean): void;
 };
 
 function debug(_x: string): void {
@@ -58,6 +59,11 @@ export async function mkTwelfService(wasmLoc: string, outputCallback: (fd: numbe
 export class TwelfService {
 
   constructor(public instance: WebAssembly.Instance) { }
+
+  unsafe(u: boolean): void {
+    const exports = this.instance.exports as TwelfExports;
+    exports.unsafe(u);
+  }
 
   async exec(input: string): Promise<TwelfStatus> {
     const exports = this.instance.exports as TwelfExports;

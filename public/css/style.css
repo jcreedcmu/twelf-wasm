@@ -206,6 +206,10 @@ label {
   user-select: none;
 }
 
+label {
+  user-select: none;
+}
+
 .server-status::after {
   content: '';
   display: block;

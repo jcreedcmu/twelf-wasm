@@ -3,6 +3,10 @@ export enum TwelfStatus {
   ABORT = 1,
 }
 
+export type TwelfOptions = {
+  unsafe: boolean,
+}
+
 export type TwelfExecStatus =
   | { t: 'twelfStatus', status: TwelfStatus }
   | { t: 'timeout' }
@@ -16,6 +20,7 @@ export type WithId<T> = { id: number, body: T };
 
 export type TwelfExecRequest = {
   input: string,
+  options: TwelfOptions,
 }
 
 export type TwelfSideEffectData = {

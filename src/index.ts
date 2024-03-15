@@ -104,7 +104,9 @@ async function initTwelf(editor: EditorView) {
     }
 
     document.getElementById('running-indicator')!.classList.remove('hidden');
-    const result = await (workerRef.worker).exec(text);
+    const result = await (workerRef.worker).exec(text, {
+      unsafe: (document.getElementById('unsafe')! as HTMLInputElement).checked
+    });
     document.getElementById('running-indicator')!.classList.add('hidden');
 
     if (result.status.t == 'timeout') {

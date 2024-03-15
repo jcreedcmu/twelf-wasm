@@ -12,6 +12,7 @@ async function go() {
 
   self.onmessage = async event => {
     const { body, id } = event.data as WithId<TwelfExecRequest>;
+    await service.unsafe(body.options.unsafe);
     post({ t: 'execResponse', id, response: await service.exec(body.input) });
   };
 

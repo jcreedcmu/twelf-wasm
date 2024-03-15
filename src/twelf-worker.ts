@@ -1,4 +1,4 @@
-import { TwelfExecRequest, TwelfExecResponse, WorkerMessage, WithId, TwelfSideEffectData, TwelfError } from "./twelf-worker-types";
+import { TwelfExecRequest, TwelfExecResponse, WorkerMessage, WithId, TwelfSideEffectData, TwelfError, TwelfOptions } from "./twelf-worker-types";
 
 export async function mkTwelfWorker(): Promise<TwelfWorker> {
   const worker = new TwelfWorker();
@@ -36,10 +36,10 @@ export class TwelfWorker {
     this._readyPromise = readyPromise;
   }
 
-  mkRequest(input: string): WithId<TwelfExecRequest> {
+  mkRequest(input: string, options: TwelfOptions): WithId<TwelfExecRequest> {
     return {
       id: this.requestIdCounter++,
-      body: { input },
+      body: { input, options },
     };
   }
 
@@ -64,10 +64,10 @@ export class TwelfWorker {
     }
   }
 
-  async exec(input: string): Promise<TwelfExecResponse> {
+  async exec(input: string, options: TwelfOptions): Promise<TwelfExecResponse> {
     this.output.splice(0); // clear output
 
-    const req = this.mkRequest(input);
+    const req = this.mkRequest(input, options);
     const prom = new Promise<WorkerMessage>((res, rej) => {
       this.responseMap[req.id] = res;
     });
