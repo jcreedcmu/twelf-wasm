@@ -225,6 +225,12 @@ label {
   visibility: visible;
 }
 
+.server-status-timeout {
+  color: white;
+  background-image: linear-gradient(to bottom, #cacaca, #656565);
+  visibility: visible;
+}
+
 .control {
   display: flex;
   gap: 0.5rem;

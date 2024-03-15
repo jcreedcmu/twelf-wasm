@@ -1,5 +1,5 @@
 import { mkTwelfService } from "./twelf-service";
-import { Status, TwelfExecRequest, TwelfExecResponse, TwelfResponse, WithId } from "./twelf-worker-types";
+import { TwelfStatus, TwelfExecRequest, TwelfExecResponse, TwelfResponse, WithId } from "./twelf-worker-types";
 
 async function go() {
   const service = await mkTwelfService('./twelf.wasm');

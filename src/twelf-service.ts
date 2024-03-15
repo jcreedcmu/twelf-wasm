@@ -1,11 +1,11 @@
-import { Status, TwelfError, TwelfExecResponse } from "./twelf-worker-types";
+import { TwelfStatus, TwelfError, TwelfExecResponse, TwelfSideEffectData } from "./twelf-worker-types";
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 
 type TwelfExports = {
   memory: WebAssembly.Memory;
   twelf_open(argc: number, argv: number): void;
   allocate(size: number): number;
-  execute(): Status;
+  execute(): TwelfStatus;
 };
 
 function debug(_x: string): void {
@@ -60,6 +60,34 @@ export class TwelfService {
 
   constructor(public instance: WebAssembly.Instance, public output: string[]) { }
 
+  timeoutStatus(): TwelfExecResponse {
+    return {
+      status: { t: 'timeout' },
+      ...this.getSideEffectData()
+    }
+  }
+
+  getSideEffectData(): TwelfSideEffectData {
+    const errorRegex = new RegExp('string:(\\d+?).(\\d+?)-(\\d+?).(\\d+?) Error: \n(.*)', 'g');
+    let m;
+    const errors: TwelfError[] = [];
+    while (m = errorRegex.exec(this.output.join(''))) {
+      errors.push({
+        range: {
+          line1: parseInt(m[1]),
+          col1: parseInt(m[2]),
+          line2: parseInt(m[3]),
+          col2: parseInt(m[4]),
+        },
+        text: m[5],
+      });
+    }
+    return {
+      output: [...this.output],
+      errors,
+    }
+  }
+
   async exec(input: string): Promise<TwelfExecResponse> {
     this.output.splice(0); // Erase output
 
@@ -81,24 +109,13 @@ export class TwelfService {
       }
       catch (e) {
         console.error(e);
-        return Status.ABORT;
+        return TwelfStatus.ABORT;
       }
     })();
 
-    const errorRegex = new RegExp('string:(\\d+?).(\\d+?)-(\\d+?).(\\d+?) Error: \n(.*)', 'g');
-    let m;
-    const errors: TwelfError[] = [];
-    while (m = errorRegex.exec(this.output.join(''))) {
-      errors.push({
-        range: {
-          line1: parseInt(m[1]),
-          col1: parseInt(m[2]),
-          line2: parseInt(m[3]),
-          col2: parseInt(m[4]),
-        },
-        text: m[5],
-      });
-    }
-    return { status, output: [...this.output], errors: errors };
+    return {
+      status: { t: 'twelfStatus', status },
+      ...this.getSideEffectData(),
+    };
   }
 }

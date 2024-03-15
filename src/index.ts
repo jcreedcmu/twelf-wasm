@@ -3,28 +3,37 @@ import { Diagnostic, lintGutter, setDiagnostics } from '@codemirror/lint';
 import { EditorView, basicSetup } from "codemirror";
 import { decode, encode } from "./encoding";
 import { twelfHighlightStyle, twelfLanguage } from './twelf-mode';
-import { Status, TwelfError } from './twelf-worker-types';
+import { TwelfStatus, TwelfError, TwelfExecStatus } from './twelf-worker-types';
 import { TwelfWorker, mkTwelfWorker } from './twelf-worker';
 
-function showStatus(status: Status) {
+function showStatus(status: TwelfExecStatus) {
   const serverStatus = (document.getElementById('server-status') as HTMLDivElement);
 
-  switch (status) {
-    case Status.OK: {
-      serverStatus.className = 'server-status server-status-ok';
-      serverStatus.innerText = 'Server OK';
+  switch (status.t) {
+    case 'twelfStatus': {
+      switch (status.status) {
+        case TwelfStatus.OK: {
+          serverStatus.className = 'server-status server-status-ok';
+          serverStatus.innerText = 'Server OK';
 
-      setTimeout(() => {
-        serverStatus.classList.add('server-status-flash');
-      }, 10);
-    }
-      break;
-    case Status.ABORT: {
-      serverStatus.className = 'server-status server-status-abort';
-      serverStatus.innerText = 'Server ABORT';
+          setTimeout(() => {
+            serverStatus.classList.add('server-status-flash');
+          }, 10);
+        }
+          break;
+        case TwelfStatus.ABORT: {
+          serverStatus.className = 'server-status server-status-abort';
+          serverStatus.innerText = 'Server ABORT';
+        } break;
+      }
     } break;
+    case 'timeout': {
+      serverStatus.className = 'server-status server-status-timeout';
+      serverStatus.innerText = 'Server TIMEOUT';
+    }
   }
 }
+
 
 // Initialize editor component
 function initEditor(): EditorView {

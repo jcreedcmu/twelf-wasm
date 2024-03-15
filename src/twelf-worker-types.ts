@@ -1,7 +1,11 @@
-export enum Status {
+export enum TwelfStatus {
   OK = 0,
   ABORT = 1,
 }
+
+export type TwelfExecStatus =
+  | { t: 'twelfStatus', status: TwelfStatus }
+  | { t: 'timeout' }
 
 export type TwelfError = {
   range: { line1: number, col1: number, line2: number, col2: number },
@@ -14,11 +18,14 @@ export type TwelfExecRequest = {
   input: string,
 }
 
-export type TwelfExecResponse = {
-  status: Status,
+export type TwelfSideEffectData = {
   output: string[],
   errors: TwelfError[],
-}
+};
+
+export type TwelfExecResponse = {
+  status: TwelfExecStatus,
+} & TwelfSideEffectData;
 
 export type TwelfReadyResponse = {};
 
