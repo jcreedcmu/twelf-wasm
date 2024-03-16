@@ -80,7 +80,7 @@ export class TwelfWorker {
           status: { t: 'timeout' },
           ...this.getSideEffectData(),
         });
-      }, 2000);
+      }, 10000);
 
       const makeRequest = async () => {
         const p = await prom;

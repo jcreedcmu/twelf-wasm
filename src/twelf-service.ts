@@ -102,15 +102,17 @@ export class TwelfService {
     catch (e: any) {
       if (e instanceof ProcExit) {
         console.log('twelf exit');
-        return { t: 'exit' };
+        return { t: 'exit', message: 'process exit' };
       }
       if (e instanceof Error) {
         console.log(`Exception raised during twelf exec: ${e.message}`);
+        return { t: 'exit', message: e.message };
       }
       else {
         console.log(`Exception raised during twelf exec: ${e}`);
+        return { t: 'exit', message: e.toString() };
       }
-      return { t: 'exit' };
+
     }
 
   }

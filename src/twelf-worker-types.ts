@@ -11,7 +11,7 @@ export type TwelfExecStatus =
   | { t: 'twelfStatus', status: TwelfStatus }
   | { t: 'timeout' }
   | { t: 'oom' }
-  | { t: 'exit' }
+  | { t: 'exit', message: string }
 
 export type TwelfError = {
   range: { line1: number, col1: number, line2: number, col2: number },

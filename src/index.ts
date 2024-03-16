@@ -135,7 +135,14 @@ async function initTwelf(editor: EditorView) {
     }
     showStatus(status);
     showErrors(result.errors);
-    (document.getElementById('twelf-response') as HTMLTextAreaElement).value = result.output.join('');
+    let outputText = result.output.join('');
+    if (status.t == 'exit') {
+      outputText = outputText + `### Twelf process exited: ${status.message}`;
+    }
+    if (status.t == 'timeout') {
+      outputText = outputText + `### Twelf process timed out`;
+    }
+    (document.getElementById('twelf-response') as HTMLTextAreaElement).value = outputText;
   }
 
   const execCurrentBuffer = () => {
