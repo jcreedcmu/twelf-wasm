@@ -2,12 +2,15 @@ import { TwelfStatus, TwelfError, TwelfExecResponse, TwelfSideEffectData, TwelfE
 import { WasiSnapshotPreview1, args_get, args_sizes_get, clock_time_get, environ_sizes_get, fd_write } from "./wasi";
 
 type TwelfExports = {
-  memory: WebAssembly.Memory;
   twelf_open(argc: number, argv: number): void;
   allocate(size: number): number;
   execute(): TwelfStatus;
   unsafe(u: boolean): void;
 };
+
+type EnvImports = {
+  memory: WebAssembly.Memory,
+}
 
 function debug(_x: string): void {
   // console.log(x);
@@ -20,14 +23,28 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
 export async function mkTwelfService(wasmLoc: string, outputCallback: (fd: number, str: string) => void): Promise<TwelfService> {
   const twelfWasm = getWasm(wasmLoc);
 
-  let mem: WebAssembly.Memory | undefined;
+  // We choose to build our own Memory object here instead of using
+  // exports.memory, so that we don't need to rebuild the .wasm file
+  // in the event we want to change, for example, `maximum`.
+  const mem: WebAssembly.Memory = new WebAssembly.Memory({
+    // these are both in units of 64k pages
+    initial: 1 << 10,
+    maximum: 1 << 14,
+  });
+
   const argv: string[] = ['twelf'];
-  const imports: { wasi_snapshot_preview1: WebAssembly.ModuleImports & WasiSnapshotPreview1 } = {
+  const imports: {
+    env: EnvImports,
+    wasi_snapshot_preview1: WebAssembly.ModuleImports & WasiSnapshotPreview1
+  } = {
+    env: {
+      memory: mem,
+    },
     wasi_snapshot_preview1: {
-      args_get: (...args) => args_get(mem!, argv, ...args),
-      args_sizes_get: (...args) => args_sizes_get(mem!, argv, ...args),
-      clock_time_get: (...args) => clock_time_get(mem!, ...args),
-      environ_sizes_get: (...args) => environ_sizes_get(mem!, ...args),
+      args_get: (...args) => args_get(mem, argv, ...args),
+      args_sizes_get: (...args) => args_sizes_get(mem, argv, ...args),
+      clock_time_get: (...args) => clock_time_get(mem, ...args),
+      environ_sizes_get: (...args) => environ_sizes_get(mem, ...args),
       environ_get: () => { debug('environ_get'); },
       proc_exit: () => { debug('proc_exit'); throw new Error("proc_exit called, probably shouldn't happen"); },
       fd_close: () => { debug('fd_close'); },
@@ -39,7 +56,7 @@ export async function mkTwelfService(wasmLoc: string, outputCallback: (fd: numbe
       fd_prestat_get: () => { debug('fd_prestat_get'); },
       fd_read: () => { debug('fd_read'); },
       fd_seek: () => { debug('fd_seek'); },
-      fd_write: (...args) => { debug('fd_write'); return fd_write(mem!, outputCallback, ...args); },
+      fd_write: (...args) => { debug('fd_write'); return fd_write(mem, outputCallback, ...args); },
 
       // Paths
       path_filestat_get: () => { debug('path_filestat_get'); },
@@ -49,16 +66,14 @@ export async function mkTwelfService(wasmLoc: string, outputCallback: (fd: numbe
 
   const source = await WebAssembly.instantiate(await twelfWasm, imports);
   const exports = (source.instance.exports as TwelfExports);
-  // give import implementations the ability to refer to memory
-  mem = exports.memory;
   exports.twelf_open(0, 0);
 
-  return new TwelfService(source.instance);
+  return new TwelfService(source.instance, mem);
 }
 
 export class TwelfService {
 
-  constructor(public instance: WebAssembly.Instance) { }
+  constructor(public instance: WebAssembly.Instance, public memory: WebAssembly.Memory) { }
 
   unsafe(u: boolean): void {
     const exports = this.instance.exports as TwelfExports;
@@ -67,7 +82,7 @@ export class TwelfService {
 
   async exec(input: string): Promise<TwelfStatus> {
     const exports = this.instance.exports as TwelfExports;
-    const mem = exports.memory;
+    const mem = this.memory;
 
     let status = (() => {
       try {
