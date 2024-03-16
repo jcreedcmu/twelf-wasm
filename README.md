@@ -35,12 +35,6 @@ runs a watch process, continually rebuilding javascript from typescript source.
 Other make targets
 ------------------
 ```shell
-make parser
-```
-rebuilds the syntax-highlighting parser from its [lezer](https://lezer.codemirror.net/) source.
-This artefact is checked into the repository since it changes rarely, and you do not need to rebuild it.
-
-```shell
 make wasm
 ```
 rebuilds the `twelf.wasm` asset in docker. This artefact is also checked into the repository,
