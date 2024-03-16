@@ -88,8 +88,11 @@ export class TwelfWorker {
           throw new Error(`expected execReponse but got ${p.t}`);
         }
         clearTimeout(t);
+        if (p.response.t != 'twelfStatus') {
+          this.worker.terminate();
+        }
         res({
-          status: { t: 'twelfStatus', status: p.response },
+          status: p.response,
           ...this.getSideEffectData(),
         });
       };

@@ -10,6 +10,8 @@ export type TwelfOptions = {
 export type TwelfExecStatus =
   | { t: 'twelfStatus', status: TwelfStatus }
   | { t: 'timeout' }
+  | { t: 'oom' }
+  | { t: 'exit' }
 
 export type TwelfError = {
   range: { line1: number, col1: number, line2: number, col2: number },
@@ -36,6 +38,6 @@ export type TwelfReadyResponse = {};
 
 export type WorkerMessage =
   | { t: 'ready' }
-  | { t: 'execResponse', id: number, response: TwelfStatus }
+  | { t: 'execResponse', id: number, response: TwelfExecStatus }
   | { t: 'output', fd: number, str: string }
   ;

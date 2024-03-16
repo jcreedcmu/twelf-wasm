@@ -24,16 +24,33 @@ function showStatus(status: TwelfExecStatus) {
         case TwelfStatus.ABORT: {
           serverStatus.className = 'server-status server-status-abort';
           serverStatus.innerText = 'Server ABORT';
+          setTimeout(() => {
+            serverStatus.classList.add('bounce');
+          }, 10);
         } break;
       }
     } break;
     case 'timeout': {
-      serverStatus.className = 'server-status server-status-timeout';
+      serverStatus.className = 'server-status server-status-exit';
       serverStatus.innerText = 'Server TIMEOUT';
       setTimeout(() => {
         serverStatus.classList.add('bounce');
       }, 10);
-    }
+    } break;
+    case 'oom': {
+      serverStatus.className = 'server-status server-status-abort';
+      serverStatus.innerText = 'Server OOM';
+      setTimeout(() => {
+        serverStatus.classList.add('bounce');
+      }, 10);
+    } break;
+    case 'exit': {
+      serverStatus.className = 'server-status server-status-exit';
+      serverStatus.innerText = 'Server EXIT';
+      setTimeout(() => {
+        serverStatus.classList.add('bounce');
+      }, 10);
+    } break;
   }
 }
 
@@ -86,35 +103,37 @@ async function initTwelf(editor: EditorView) {
         severity: "error",
       }
       );
-
-
     });
 
     editor.dispatch(setDiagnostics(editor.state, diagnostics));
-
   }
 
-  const workerRef: { worker: TwelfWorker | undefined } = { worker: undefined };
+  const workerRef: { twelfWorker: TwelfWorker | undefined } = { twelfWorker: undefined };
   (document.getElementById('twelf-response') as HTMLTextAreaElement).value = '';
-  workerRef.worker = await mkTwelfWorker();
+  workerRef.twelfWorker = await mkTwelfWorker();
 
   async function execAndShowStatus(text: string): Promise<void> {
-    if (workerRef.worker == undefined) {
+    if (workerRef.twelfWorker == undefined) {
       throw new Error(`twelf worker not ready yet`);
     }
 
     document.getElementById('running-indicator')!.classList.remove('hidden');
-    const result = await (workerRef.worker).exec(text, {
+    const result = await (workerRef.twelfWorker).exec(text, {
       unsafe: (document.getElementById('unsafe')! as HTMLInputElement).checked
     });
     document.getElementById('running-indicator')!.classList.add('hidden');
 
-    if (result.status.t == 'timeout') {
-      workerRef.worker = undefined;
-      console.log('twelf timed out, trying to restart twelf worker...');
-      workerRef.worker = await mkTwelfWorker();
+    if (result.status.t != 'twelfStatus') {
+      workerRef.twelfWorker = undefined;
+      console.log('twelf worker unhealthy, trying to restart twelf worker...');
+      workerRef.twelfWorker = await mkTwelfWorker();
     }
-    showStatus(result.status);
+
+    let status = result.status;
+    if (result.output.join('').match(/Out of memory.  Unable to allocate heap/)) {
+      status = { t: 'oom' };
+    }
+    showStatus(status);
     showErrors(result.errors);
     (document.getElementById('twelf-response') as HTMLTextAreaElement).value = result.output.join('');
   }

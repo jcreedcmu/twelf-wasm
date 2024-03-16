@@ -20,6 +20,8 @@ async function getWasm(url: string): Promise<ArrayBuffer> {
   return (await fetch(url)).arrayBuffer();
 }
 
+class ProcExit extends Error { }
+
 export async function mkTwelfService(wasmLoc: string, outputCallback: (fd: number, str: string) => void): Promise<TwelfService> {
   const twelfWasm = getWasm(wasmLoc);
 
@@ -28,8 +30,8 @@ export async function mkTwelfService(wasmLoc: string, outputCallback: (fd: numbe
   // in the event we want to change, for example, `maximum`.
   const mem: WebAssembly.Memory = new WebAssembly.Memory({
     // these are both in units of 64k pages
-    initial: 1 << 10,
-    maximum: 1 << 14,
+    initial: 16,
+    maximum: 1 << 11,
   });
 
   const argv: string[] = ['twelf'];
@@ -46,7 +48,7 @@ export async function mkTwelfService(wasmLoc: string, outputCallback: (fd: numbe
       clock_time_get: (...args) => clock_time_get(mem, ...args),
       environ_sizes_get: (...args) => environ_sizes_get(mem, ...args),
       environ_get: () => { debug('environ_get'); },
-      proc_exit: () => { debug('proc_exit'); throw new Error("proc_exit called, probably shouldn't happen"); },
+      proc_exit: () => { debug('proc_exit'); throw new ProcExit(); },
       fd_close: () => { debug('fd_close'); },
       fd_fdstat_get: () => { debug('fd_fdstat_get'); },
       fd_fdstat_set_flags: () => { debug('fd_fdstat_set_flags'); },
@@ -80,29 +82,36 @@ export class TwelfService {
     exports.unsafe(u);
   }
 
-  async exec(input: string): Promise<TwelfStatus> {
+  async exec(input: string): Promise<TwelfExecStatus> {
     const exports = this.instance.exports as TwelfExports;
     const mem = this.memory;
 
-    let status = (() => {
-      try {
-        const data = new TextEncoder().encode(input);
-        const length = data.length;
-        const inputBuf = exports.allocate(length);
-        const buffer = new Uint8Array(
-          mem.buffer,
-          inputBuf,
-          length,
-        );
-        buffer.set(data);
-        return exports.execute();
-      }
-      catch (e) {
-        console.error(e);
-        return TwelfStatus.ABORT;
-      }
-    })();
 
-    return status;
+    try {
+      const data = new TextEncoder().encode(input);
+      const length = data.length;
+      const inputBuf = exports.allocate(length);
+      const buffer = new Uint8Array(
+        mem.buffer,
+        inputBuf,
+        length,
+      );
+      buffer.set(data);
+      return { t: 'twelfStatus', status: exports.execute() };
+    }
+    catch (e: any) {
+      if (e instanceof ProcExit) {
+        console.log('twelf exit');
+        return { t: 'exit' };
+      }
+      if (e instanceof Error) {
+        console.log(`Exception raised during twelf exec: ${e.message}`);
+      }
+      else {
+        console.log(`Exception raised during twelf exec: ${e}`);
+      }
+      return { t: 'exit' };
+    }
+
   }
 }

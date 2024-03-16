@@ -240,7 +240,7 @@ label {
   visibility: visible;
 }
 
-.server-status-timeout {
+.server-status-exit {
   color: white;
   background-image: linear-gradient(to bottom, #cacaca, #656565);
   visibility: visible;
