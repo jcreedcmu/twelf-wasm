@@ -1,7 +1,7 @@
 import { syntaxHighlighting } from '@codemirror/language';
 import { Diagnostic, lintGutter, setDiagnostics } from '@codemirror/lint';
 import { EditorView, basicSetup } from "codemirror";
-import { decode, encode } from "./encoding";
+import { FragmentAction, decode, encode } from "./encoding";
 import { twelfHighlightStyle, twelfLanguage } from './twelf-mode';
 import { TwelfStatus, TwelfError, TwelfExecStatus } from './twelf-worker-types';
 import { TwelfWorker, mkTwelfWorker } from './twelf-worker';
@@ -77,6 +77,15 @@ function initEditor(): EditorView {
 }
 
 async function initTwelf(editor: EditorView) {
+
+  function resolveFragmentAction(action: FragmentAction): void {
+    switch (action.t) {
+      case 'setTextAndExec': {
+        setText(action.text);
+        execCurrentBuffer();
+      } break;
+    }
+  }
 
   function showErrors(errors: TwelfError[]): void {
     function posOfLineCol(line: number, col: number): number {
@@ -156,8 +165,7 @@ async function initTwelf(editor: EditorView) {
   };
 
   if (window.location.hash) {
-    setText(await decode(window.location.hash.substring(1)));
-    execCurrentBuffer();
+    resolveFragmentAction(await decode(window.location.hash.substring(1)));
   }
   else {
     const savedElf = localStorage.getItem('savedElf');

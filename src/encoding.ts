@@ -40,15 +40,22 @@ export async function encode(text: string): Promise<string> {
   return encodeWithV2(text);
 }
 
-export async function decode(fragment: string): Promise<string> {
+export type FragmentAction =
+  | { t: 'setTextAndExec', text: string }
+  ;
+
+export async function decode(fragment: string): Promise<FragmentAction> {
   const uridecoded = decodeURIComponent(fragment);
   if (uridecoded.match(/^v2\//)) {
     const stripPrefix = uridecoded.replace(/v2\//, '');
-    return stringOfBytes(await decompressedOf(bytesOfBase64({ t: 'base64', str: stripPrefix })));
+    return {
+      t: 'setTextAndExec',
+      text: stringOfBytes(await decompressedOf(bytesOfBase64({ t: 'base64', str: stripPrefix })))
+    };
   }
   else {
     // v1 encoding
-    return atob(uridecoded);
+    return { t: 'setTextAndExec', text: atob(uridecoded) };
   }
 }
 

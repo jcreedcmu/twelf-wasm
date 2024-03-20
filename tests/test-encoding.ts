@@ -8,14 +8,14 @@ a: type. c: a.
 
 describe('url encoding', () => {
   test('should roundtrip with v1', async () => {
-    expect(await decode(encodeWithV1(exampleTwelf))).toEqual(exampleTwelf);
+    expect(await decode(encodeWithV1(exampleTwelf))).toEqual({ t: 'setTextAndExec', text: exampleTwelf });
   });
 
   // I'd like to test v2 in nodejs, but I need to figure out a strategy
   // for polyfilling Blob and CompressionStream
 
   // test('should roundtrip with v2', async () => {
-  //   expect(await decode(await encodeWithV2(exampleTwelf))).toEqual(exampleTwelf);
+  //   expect(await decode(await encodeWithV2(exampleTwelf))).toEqual({ t: 'setTextAndExec', text: exampleTwelf});
   // });
 
 });
