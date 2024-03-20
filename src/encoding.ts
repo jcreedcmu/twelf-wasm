@@ -31,13 +31,22 @@ export function encodeWithV1(text: string): string {
 }
 
 export async function encodeWithV2(text: string): Promise<string> {
-  const x1 = bytesOfString(text);
   const encoded = encodeURIComponent(base64OfBytes(await compressedOf(bytesOfString(text))).str);
   return 'v2/' + encoded;
 }
 
+export function encodeWithJson(action: FragmentAction): string {
+  const encoded = encodeURIComponent(base64OfBytes(bytesOfString(JSON.stringify(action))).str);
+  return 'json/' + encoded;
+}
+
+export async function encodeWithJsonz(action: FragmentAction): Promise<string> {
+  const encoded = encodeURIComponent(base64OfBytes(await compressedOf(bytesOfString(JSON.stringify(action)))).str);
+  return 'jsonz/' + encoded;
+}
+
 export async function encode(text: string): Promise<string> {
-  return encodeWithV2(text);
+  return encodeWithJsonz({ t: 'setTextAndExec', text });
 }
 
 export type FragmentAction =
@@ -46,7 +55,15 @@ export type FragmentAction =
 
 export async function decode(fragment: string): Promise<FragmentAction> {
   const uridecoded = decodeURIComponent(fragment);
-  if (uridecoded.match(/^v2\//)) {
+  if (uridecoded.match(/^json\//)) {
+    const stripPrefix = uridecoded.replace(/json\//, '');
+    return JSON.parse(stringOfBytes(bytesOfBase64({ t: 'base64', str: stripPrefix }))) as FragmentAction;
+  }
+  else if (uridecoded.match(/^jsonz\//)) {
+    const stripPrefix = uridecoded.replace(/jsonz\//, '');
+    return JSON.parse(stringOfBytes(await decompressedOf(bytesOfBase64({ t: 'base64', str: stripPrefix }))));
+  }
+  else if (uridecoded.match(/^v2\//)) {
     const stripPrefix = uridecoded.replace(/v2\//, '');
     return {
       t: 'setTextAndExec',

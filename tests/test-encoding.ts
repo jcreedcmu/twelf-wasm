@@ -1,4 +1,4 @@
-import { decode, encodeWithV1, encodeWithV2 } from "../src/encoding";
+import { decode, encodeWithJson, encodeWithV1, encodeWithV2 } from "../src/encoding";
 
 
 const exampleTwelf = `
@@ -9,6 +9,10 @@ a: type. c: a.
 describe('url encoding', () => {
   test('should roundtrip with v1', async () => {
     expect(await decode(encodeWithV1(exampleTwelf))).toEqual({ t: 'setTextAndExec', text: exampleTwelf });
+  });
+
+  test('should roundtrip with json', async () => {
+    expect(await decode(encodeWithJson({ t: 'setTextAndExec', text: exampleTwelf }))).toEqual({ t: 'setTextAndExec', text: exampleTwelf });
   });
 
   // I'd like to test v2 in nodejs, but I need to figure out a strategy
