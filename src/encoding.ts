@@ -26,17 +26,21 @@ async function decompressedOf(bytes: Uint8Array): Promise<Uint8Array> {
   return await bytesOfStream(streamOfBytes(bytes).pipeThrough(new DecompressionStream('gzip')));
 }
 
-export async function encode(text: string): Promise<string> {
-  // // v1:
-  // return encodeURIComponent(btoa(text));
+export function encodeWithV1(text: string): string {
+  return encodeURIComponent(btoa(text));
+}
 
-  // v2:
+export async function encodeWithV2(text: string): Promise<string> {
   const x1 = bytesOfString(text);
   const encoded = encodeURIComponent(base64OfBytes(await compressedOf(bytesOfString(text))).str);
   return 'v2/' + encoded;
 }
 
-export async function decode(fragment: string) {
+export async function encode(text: string): Promise<string> {
+  return encodeWithV2(text);
+}
+
+export async function decode(fragment: string): Promise<string> {
   const uridecoded = decodeURIComponent(fragment);
   if (uridecoded.match(/^v2\//)) {
     const stripPrefix = uridecoded.replace(/v2\//, '');
