@@ -171,10 +171,19 @@ async function initTwelf(editor: EditorView) {
     execCurrentBuffer();
   };
 
-  if (window.location.hash) {
-    await resolveFragmentAction(await decode(window.location.hash.substring(1)));
+  // returns whether there was a hash at all
+  async function resolveCurrentFragmentAction(): Promise<boolean> {
+    if (window.location.hash) {
+      await resolveFragmentAction(await decode(window.location.hash.substring(1)));
+      return true;
+    }
+    return false;
   }
-  else {
+
+  window.addEventListener('hashchange', resolveCurrentFragmentAction);
+
+  if (!(await resolveCurrentFragmentAction())) {
+    // if no fragment, then look to local storage for initial state
     const savedElf = localStorage.getItem('savedElf');
     if (savedElf != undefined) {
       setText(savedElf);
