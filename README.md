@@ -1,6 +1,7 @@
 Twelf on Wasm
 =============
 [![run tests](https://github.com/jcreedcmu/twelf-wasm/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/jcreedcmu/twelf-wasm/actions/workflows/run-tests.yml)
+[![NPM Module](https://img.shields.io/npm/v/twelf-wasm.svg)](https://www.npmjs.com/package/twelf-wasm)
 
 [Twelf](http://twelf.org/wiki/Main_Page) is an implementation, in
 [Standard ML](https://en.wikipedia.org/wiki/Standard_ML), of a logical
