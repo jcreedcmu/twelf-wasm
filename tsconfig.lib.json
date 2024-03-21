@@ -3,11 +3,13 @@
     "target": "esnext",
     "lib": ["esnext", "dom"],
     "module": "commonjs",
-    "noEmit": true,
+    "declaration": true,
+    "declarationDir": "lib",
+    "emitDeclarationOnly": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts"]
+  "include": ["src/encoding.ts"]
 }

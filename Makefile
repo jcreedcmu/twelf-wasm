@@ -8,6 +8,11 @@ build:
 	test -e node_modules || npm i
 	node build.js
 
+# build without watching
+build-lib:
+	test -e node_modules || npm i
+	npm run build-lib
+
 # run typechecker
 check:
 	npx tsc --watch
