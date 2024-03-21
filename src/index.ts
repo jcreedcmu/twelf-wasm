@@ -1,7 +1,7 @@
 import { syntaxHighlighting } from '@codemirror/language';
 import { Diagnostic, lintGutter, setDiagnostics } from '@codemirror/lint';
 import { EditorView, basicSetup } from "codemirror";
-import { FragmentAction, decode, encode } from "./encoding";
+import { FragmentAction, UrlAction, decode, encode } from "./encoding";
 import { twelfHighlightStyle, twelfLanguage } from './twelf-mode';
 import { TwelfStatus, TwelfError, TwelfExecStatus } from './twelf-worker-types';
 import { TwelfWorker, mkTwelfWorker } from './twelf-worker';
@@ -78,12 +78,19 @@ function initEditor(): EditorView {
 
 async function initTwelf(editor: EditorView) {
 
-  function resolveFragmentAction(action: FragmentAction): void {
+  async function resolveFragmentAction(action: FragmentAction): Promise<void> {
     switch (action.t) {
       case 'setTextAndExec': {
         setText(action.text);
         execCurrentBuffer();
       } break;
+      case 'getUrl': {
+        const urlAction = await (await fetch(action.url)).json() as UrlAction;
+        resolveFragmentAction(urlAction);
+      } break;
+      default: {
+        throw new Error(`Unknown FragmentAction: ${JSON.stringify(action)}`);
+      }
     }
   }
 
@@ -165,7 +172,7 @@ async function initTwelf(editor: EditorView) {
   };
 
   if (window.location.hash) {
-    resolveFragmentAction(await decode(window.location.hash.substring(1)));
+    await resolveFragmentAction(await decode(window.location.hash.substring(1)));
   }
   else {
     const savedElf = localStorage.getItem('savedElf');

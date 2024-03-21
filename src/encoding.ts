@@ -49,8 +49,14 @@ export async function encode(text: string): Promise<string> {
   return encodeWithJsonz({ t: 'setTextAndExec', text });
 }
 
-export type FragmentAction =
+export type UrlAction =
   | { t: 'setTextAndExec', text: string }
+
+export type FragmentAction =
+  | UrlAction
+  // fetch url, expected to be json-encoded UrlAction,
+  // and then we will do that.
+  | { t: 'getUrl', url: string }
   ;
 
 export async function decode(fragment: string): Promise<FragmentAction> {
