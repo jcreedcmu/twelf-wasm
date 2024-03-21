@@ -8,7 +8,7 @@ build:
 	test -e node_modules || npm i
 	node build.js
 
-# build without watching
+# build npm library
 build-lib:
 	test -e node_modules || npm i
 	npm run build-lib
@@ -23,6 +23,15 @@ serve:
 # deploy to github pages
 deploy:
 	git push origin "main:deploy"
+
+test:
+	npm run test-watch
+
+# publish to npm
+publish:
+	make build-lib
+	npm run test
+	npm publish
 
 wasm: public/assets/twelf.wasm
 

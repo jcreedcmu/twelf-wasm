@@ -4,7 +4,7 @@
     "require": "./lib/encoding.cjs"
   },
   "types": "lib/encoding.d.ts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Running Twelf as a webassembly binary in a web page",
   "homepage": "https://jcreedcmu.github.io/twelf-wasm/",
   "bugs": {
@@ -21,7 +21,8 @@
   "author": "jcreed",
   "license": "CC-BY-4.0",
   "scripts": {
-    "test": "jest --watch",
+    "test": "jest",
+    "test-watch": "jest --watch",
     "build-lib": "tsc --project tsconfig.lib.json && node build-lib.js"
   },
   "devDependencies": {
