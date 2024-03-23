@@ -41,3 +41,13 @@ make wasm
 ```
 rebuilds the `twelf.wasm` asset in docker. This artefact is also checked into the repository,
 and it similarly does not need to be built from a fresh checkout.
+
+```shell
+make deploy
+```
+pushes to the `deploy` branch, which causes [this Actions workflow](.github/workflows/static.yml) to rebuild the [static site](https://jcreedcmu.github.io/twelf-wasm).
+
+```shell
+make publish
+```
+pushes to the `publish` branch, which causes [this Actions workflow](.github/workflows/publish.yml) to publish [the npm package](https://www.npmjs.com/package/twelf-wasm).

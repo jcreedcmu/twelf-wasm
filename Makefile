@@ -28,6 +28,10 @@ test:
 	npm run test-watch
 
 # publish to npm
+publish:
+	git push origin "main:publish"
+
+# publish to npm, called by ci
 ci-publish:
 	make build-lib
 	mv README.npm-lib.md README.md
