@@ -28,8 +28,9 @@ test:
 	npm run test-watch
 
 # publish to npm
-publish:
+ci-publish:
 	make build-lib
+	mv README.npm-lib.md README.md
 	npm run test
 	npm publish
 

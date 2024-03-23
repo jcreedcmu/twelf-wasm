@@ -20,4 +20,4 @@ jobs:
           node-version: 18.x
 
       - name: Run tests
-        run: npm install && npx jest
+        run: npm ci && npx jest
