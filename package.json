@@ -1,7 +1,8 @@
 {
   "name": "twelf-wasm",
   "exports": {
-    "require": "./lib/encoding.cjs"
+    "require": "./lib/encoding.cjs",
+    "import": "./lib/encoding.js"
   },
   "types": "lib/encoding.d.ts",
   "version": "0.1.4",
@@ -41,6 +42,7 @@
   "files": [
     "package.json",
     "README.md",
+    "lib/encoding.js",
     "lib/encoding.cjs",
     "lib/encoding.cjs.map",
     "lib/encoding.d.ts"
