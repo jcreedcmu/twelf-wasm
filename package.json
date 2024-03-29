@@ -5,7 +5,7 @@
     "import": "./lib/encoding.js"
   },
   "types": "lib/encoding.d.ts",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Running Twelf as a webassembly binary in a web page",
   "homepage": "https://jcreedcmu.github.io/twelf-wasm/",
   "bugs": {
