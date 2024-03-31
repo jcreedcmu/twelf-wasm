@@ -1,4 +1,4 @@
-const esbuild = require('esbuild');
+import * as esbuild from 'esbuild';
 
 async function go() {
   const args = process.argv.slice(2);
