@@ -42,7 +42,7 @@
   "files": [
     "package.json",
     "README.md",
-    "lib/encoding.js",
+    "lib/encoding.mjs",
     "lib/encoding.cjs",
     "lib/encoding.cjs.map",
     "lib/encoding.d.ts"
